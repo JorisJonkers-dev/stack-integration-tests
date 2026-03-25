@@ -1,30 +1,41 @@
 package com.jorisjonkers.privatestack.systemtests
 
-import io.restassured.RestAssured
-import org.junit.jupiter.api.Disabled
+import io.restassured.RestAssured.given
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
 @Tag("system")
-@Disabled("Enable when services are deployed")
 class HealthCheckSystemTest {
+
+    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private val assistantBaseUrl = System.getProperty("test.assistant-api.url", "http://localhost:8082")
 
     @Test
     fun `auth-api health endpoint responds`() {
-        RestAssured.given()
-            .baseUri("http://localhost:8081")
+        given()
+            .baseUri(authBaseUrl)
             .`when`()
-            .get("/api/v1/health")
+            .get("/actuator/health")
             .then()
             .statusCode(200)
     }
 
     @Test
     fun `assistant-api health endpoint responds`() {
-        RestAssured.given()
-            .baseUri("http://localhost:8082")
+        given()
+            .baseUri(assistantBaseUrl)
             .`when`()
-            .get("/api/v1/health")
+            .get("/actuator/health")
+            .then()
+            .statusCode(200)
+    }
+
+    @Test
+    fun `auth-api oidc discovery is accessible`() {
+        given()
+            .baseUri(authBaseUrl)
+            .`when`()
+            .get("/.well-known/openid-configuration")
             .then()
             .statusCode(200)
     }
