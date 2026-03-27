@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 
 @Tag("system")
 class HealthCheckSystemTest {
-
     private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
     private val assistantBaseUrl = System.getProperty("test.assistant-api.url", "http://localhost:8082")
 
