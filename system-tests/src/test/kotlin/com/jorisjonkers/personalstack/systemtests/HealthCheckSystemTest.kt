@@ -1,4 +1,4 @@
-package com.jorisjonkers.privatestack.systemtests
+package com.jorisjonkers.personalstack.systemtests
 
 import io.restassured.RestAssured.given
 import org.junit.jupiter.api.Tag
