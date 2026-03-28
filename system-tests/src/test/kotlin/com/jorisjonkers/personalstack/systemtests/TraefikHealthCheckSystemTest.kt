@@ -19,16 +19,36 @@ import java.util.stream.Stream
 class TraefikHealthCheckSystemTest {
     companion object {
         @JvmStatic
-        fun healthEndpoints(): Stream<Arguments> =
+        fun actuatorEndpoints(): Stream<Arguments> =
             Stream.of(
                 Arguments.of("auth-api /actuator/health", "http://auth.localhost:80", "/api/actuator/health"),
                 Arguments.of("assistant-api /actuator/health", "http://app.localhost:80", "/api/actuator/health"),
             )
+
+        @JvmStatic
+        fun v1HealthEndpoints(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of("auth-api /v1/health", "http://auth.localhost:80", "/api/v1/health", "auth-api"),
+                Arguments.of("assistant-api /v1/health", "http://app.localhost:80", "/api/v1/health", "assistant-api"),
+            )
+
+        @JvmStatic
+        fun allHealthEndpoints(): Stream<Arguments> =
+            Stream.concat(
+                actuatorEndpoints().map { args ->
+                    val arr = args.get()
+                    Arguments.of(arr[0], arr[1], arr[2])
+                },
+                v1HealthEndpoints().map { args ->
+                    val arr = args.get()
+                    Arguments.of(arr[0], arr[1], arr[2])
+                },
+            )
     }
 
-    @ParameterizedTest(name = "{0} is publicly accessible through Traefik")
-    @MethodSource("healthEndpoints")
-    fun `health endpoint responds 200 without authentication through Traefik`(
+    @ParameterizedTest(name = "{0} actuator is publicly accessible through Traefik")
+    @MethodSource("actuatorEndpoints")
+    fun `actuator health responds 200 without authentication through Traefik`(
         @Suppress("UNUSED_PARAMETER") label: String,
         baseUrl: String,
         path: String,
@@ -42,8 +62,26 @@ class TraefikHealthCheckSystemTest {
             .body("status", equalTo("UP"))
     }
 
+    @ParameterizedTest(name = "{0} is publicly accessible through Traefik")
+    @MethodSource("v1HealthEndpoints")
+    fun `v1 health responds 200 without authentication through Traefik`(
+        @Suppress("UNUSED_PARAMETER") label: String,
+        baseUrl: String,
+        path: String,
+        serviceName: String,
+    ) {
+        given()
+            .baseUri(baseUrl)
+            .`when`()
+            .get(path)
+            .then()
+            .statusCode(200)
+            .body("status", equalTo("ok"))
+            .body("service", equalTo(serviceName))
+    }
+
     @ParameterizedTest(name = "{0} does NOT redirect to login")
-    @MethodSource("healthEndpoints")
+    @MethodSource("allHealthEndpoints")
     fun `health endpoint does not trigger forward-auth redirect`(
         @Suppress("UNUSED_PARAMETER") label: String,
         baseUrl: String,

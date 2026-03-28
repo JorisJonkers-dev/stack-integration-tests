@@ -30,6 +30,30 @@ class HealthCheckSystemTest {
     }
 
     @Test
+    fun `auth-api v1 health endpoint responds`() {
+        given()
+            .baseUri(authBaseUrl)
+            .`when`()
+            .get("/api/v1/health")
+            .then()
+            .statusCode(200)
+            .body("status", org.hamcrest.Matchers.equalTo("ok"))
+            .body("service", org.hamcrest.Matchers.equalTo("auth-api"))
+    }
+
+    @Test
+    fun `assistant-api v1 health endpoint responds`() {
+        given()
+            .baseUri(assistantBaseUrl)
+            .`when`()
+            .get("/api/v1/health")
+            .then()
+            .statusCode(200)
+            .body("status", org.hamcrest.Matchers.equalTo("ok"))
+            .body("service", org.hamcrest.Matchers.equalTo("assistant-api"))
+    }
+
+    @Test
     fun `auth-api oidc discovery is accessible`() {
         given()
             .baseUri(authBaseUrl)
