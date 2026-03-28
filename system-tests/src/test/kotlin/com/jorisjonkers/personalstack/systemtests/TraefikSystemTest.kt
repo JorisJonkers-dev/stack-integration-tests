@@ -18,15 +18,15 @@ class TraefikSystemTest {
     private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
 
     // UI services
-    private val appUiUrl = "http://localhost"
-    private val authUiUrl = "http://auth.localhost"
-    private val assistantUiUrl = "http://app.localhost"
+    private val appUiUrl = "http://localhost:80"
+    private val authUiUrl = "http://auth.localhost:80"
+    private val assistantUiUrl = "http://app.localhost:80"
 
     // Forward-auth protected services
-    private val vaultUrl = "http://vault.localhost"
-    private val n8nUrl = "http://n8n.localhost"
-    private val grafanaUrl = "http://grafana.localhost"
-    private val stalwartUrl = "http://stalwart.localhost"
+    private val vaultUrl = "http://vault.localhost:80"
+    private val n8nUrl = "http://n8n.localhost:80"
+    private val grafanaUrl = "http://grafana.localhost:80"
+    private val stalwartUrl = "http://stalwart.localhost:80"
 
     private fun obtainToken(): String = TestHelper.registerConfirmAndLogin()
 

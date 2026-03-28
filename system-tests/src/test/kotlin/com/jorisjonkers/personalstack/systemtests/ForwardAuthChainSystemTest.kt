@@ -27,11 +27,11 @@ class ForwardAuthChainSystemTest {
         @JvmStatic
         fun protectedServices(): Stream<Arguments> =
             Stream.of(
-                Arguments.of("vault", "http://vault.localhost", "/"),
-                Arguments.of("n8n", "http://n8n.localhost", "/"),
-                Arguments.of("grafana", "http://grafana.localhost", "/d/dashboard"),
-                Arguments.of("traefik", "http://traefik.localhost", "/dashboard/"),
-                Arguments.of("stalwart", "http://stalwart.localhost", "/"),
+                Arguments.of("vault", "http://vault.localhost:80", "/"),
+                Arguments.of("n8n", "http://n8n.localhost:80", "/"),
+                Arguments.of("grafana", "http://grafana.localhost:80", "/d/dashboard"),
+                Arguments.of("traefik", "http://traefik.localhost:80", "/dashboard/"),
+                Arguments.of("stalwart", "http://stalwart.localhost:80", "/"),
             )
     }
 

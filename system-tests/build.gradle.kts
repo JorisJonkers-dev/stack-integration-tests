@@ -21,4 +21,5 @@ tasks.test {
     useJUnitPlatform {
         includeTags("system")
     }
+    outputs.upToDateWhen { false }
 }
