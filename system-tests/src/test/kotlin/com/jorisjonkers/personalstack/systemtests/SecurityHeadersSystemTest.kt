@@ -20,7 +20,7 @@ class SecurityHeadersSystemTest {
             Stream.of(
                 Arguments.of("app-ui", "http://localhost:80", "/"),
                 Arguments.of("auth-ui", "http://auth.localhost:80", "/"),
-                Arguments.of("assistant-ui", "http://app.localhost:80", "/"),
+                Arguments.of("assistant-ui", "http://assistant.localhost:80", "/"),
             )
     }
 

@@ -20,7 +20,7 @@ class TraefikSystemTest {
     // UI services
     private val appUiUrl = "http://localhost:80"
     private val authUiUrl = "http://auth.localhost:80"
-    private val assistantUiUrl = "http://app.localhost:80"
+    private val assistantUiUrl = "http://assistant.localhost:80"
 
     // Forward-auth protected services
     private val vaultUrl = "http://vault.localhost:80"
