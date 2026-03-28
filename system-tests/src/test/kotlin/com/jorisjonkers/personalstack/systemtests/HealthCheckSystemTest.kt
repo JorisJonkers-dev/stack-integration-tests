@@ -14,7 +14,7 @@ class HealthCheckSystemTest {
         given()
             .baseUri(authBaseUrl)
             .`when`()
-            .get("/actuator/health")
+            .get("/api/actuator/health")
             .then()
             .statusCode(200)
     }
@@ -24,7 +24,7 @@ class HealthCheckSystemTest {
         given()
             .baseUri(assistantBaseUrl)
             .`when`()
-            .get("/actuator/health")
+            .get("/api/actuator/health")
             .then()
             .statusCode(200)
     }

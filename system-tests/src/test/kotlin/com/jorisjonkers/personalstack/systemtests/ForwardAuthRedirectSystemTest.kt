@@ -55,28 +55,5 @@ class ForwardAuthRedirectSystemTest {
             .statusCode(200)
     }
 
-    private fun registerAndLogin(): String {
-        val username = "fwdauth_${java.util.UUID.randomUUID().toString().take(8)}"
-
-        given()
-            .baseUri(authBaseUrl)
-            .contentType(io.restassured.http.ContentType.JSON)
-            .body("""{"username":"$username","email":"$username@test.com","password":"Test1234!"}""")
-            .`when`()
-            .post("/api/v1/users/register")
-            .then()
-            .statusCode(201)
-
-        return given()
-            .baseUri(authBaseUrl)
-            .contentType(io.restassured.http.ContentType.JSON)
-            .body("""{"username":"$username","password":"Test1234!"}""")
-            .`when`()
-            .post("/api/v1/auth/login")
-            .then()
-            .statusCode(200)
-            .extract()
-            .jsonPath()
-            .getString("accessToken")
-    }
+    private fun registerAndLogin(): String = TestHelper.registerConfirmAndLogin()
 }

@@ -6,7 +6,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.UUID
 
 /**
  * System test: register -> login -> verify -> create conversation via assistant-api.
@@ -22,35 +21,9 @@ class CrossServiceSystemTest {
     private val assistantBaseUrl = System.getProperty("test.assistant-api.url", "http://localhost:8082")
 
     private fun registerAndAuthenticate(): String {
-        val username = "cross_${UUID.randomUUID().toString().take(8)}"
-        registerUser(username)
-        val accessToken = login(username)
+        val accessToken = TestHelper.registerConfirmAndLogin()
         return verifyAndGetUserId(accessToken)
     }
-
-    private fun registerUser(username: String) {
-        given()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$username@cross.example.com","password":"CrossTest1!"}""")
-            .`when`()
-            .post("/api/v1/users/register")
-            .then()
-            .statusCode(201)
-    }
-
-    private fun login(username: String): String =
-        given()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .body("""{"username":"$username","password":"CrossTest1!"}""")
-            .`when`()
-            .post("/api/v1/auth/login")
-            .then()
-            .statusCode(200)
-            .extract()
-            .jsonPath()
-            .getString("accessToken")
 
     private fun verifyAndGetUserId(accessToken: String): String {
         val userId =

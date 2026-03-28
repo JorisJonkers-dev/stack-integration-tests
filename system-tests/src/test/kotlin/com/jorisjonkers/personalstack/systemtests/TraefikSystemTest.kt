@@ -1,12 +1,10 @@
 package com.jorisjonkers.personalstack.systemtests
 
 import io.restassured.RestAssured.given
-import io.restassured.http.ContentType
 import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.not
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 /**
  * System tests that go through Traefik (port 80) using virtual-host URLs.
@@ -28,31 +26,9 @@ class TraefikSystemTest {
     private val vaultUrl = "http://vault.localhost"
     private val n8nUrl = "http://n8n.localhost"
     private val grafanaUrl = "http://grafana.localhost"
+    private val stalwartUrl = "http://stalwart.localhost"
 
-    private fun obtainToken(): String {
-        val username = "traefik_${UUID.randomUUID().toString().take(8)}"
-
-        given()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$username@test.com","password":"Test1234!"}""")
-            .`when`()
-            .post("/api/v1/users/register")
-            .then()
-            .statusCode(201)
-
-        return given()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .body("""{"username":"$username","password":"Test1234!"}""")
-            .`when`()
-            .post("/api/v1/auth/login")
-            .then()
-            .statusCode(200)
-            .extract()
-            .jsonPath()
-            .getString("accessToken")
-    }
+    private fun obtainToken(): String = TestHelper.registerConfirmAndLogin()
 
     // ── UI routes (no authentication required) ───────────────────────────────
 
@@ -92,7 +68,8 @@ class TraefikSystemTest {
     fun `vault unauthenticated redirects to auth login`() {
         given()
             .baseUri(vaultUrl)
-            .redirects().follow(false)
+            .redirects()
+            .follow(false)
             .`when`()
             .get("/")
             .then()
@@ -104,7 +81,8 @@ class TraefikSystemTest {
     fun `n8n unauthenticated redirects to auth login`() {
         given()
             .baseUri(n8nUrl)
-            .redirects().follow(false)
+            .redirects()
+            .follow(false)
             .`when`()
             .get("/")
             .then()
@@ -116,7 +94,21 @@ class TraefikSystemTest {
     fun `grafana unauthenticated redirects to auth login`() {
         given()
             .baseUri(grafanaUrl)
-            .redirects().follow(false)
+            .redirects()
+            .follow(false)
+            .`when`()
+            .get("/")
+            .then()
+            .statusCode(302)
+            .header("Location", containsString("auth.localhost/login"))
+    }
+
+    @Test
+    fun `stalwart unauthenticated redirects to auth login`() {
+        given()
+            .baseUri(stalwartUrl)
+            .redirects()
+            .follow(false)
             .`when`()
             .get("/")
             .then()
@@ -132,7 +124,8 @@ class TraefikSystemTest {
         given()
             .baseUri(vaultUrl)
             .header("Authorization", "Bearer $token")
-            .redirects().follow(false)
+            .redirects()
+            .follow(false)
             .`when`()
             .get("/")
             .then()
@@ -145,7 +138,8 @@ class TraefikSystemTest {
         given()
             .baseUri(n8nUrl)
             .header("Authorization", "Bearer $token")
-            .redirects().follow(false)
+            .redirects()
+            .follow(false)
             .`when`()
             .get("/")
             .then()
@@ -158,7 +152,22 @@ class TraefikSystemTest {
         given()
             .baseUri(grafanaUrl)
             .header("Authorization", "Bearer $token")
-            .redirects().follow(false)
+            .redirects()
+            .follow(false)
+            .`when`()
+            .get("/")
+            .then()
+            .header("Location", not(containsString("auth.localhost/login")))
+    }
+
+    @Test
+    fun `stalwart authenticated passes forward-auth`() {
+        val token = obtainToken()
+        given()
+            .baseUri(stalwartUrl)
+            .header("Authorization", "Bearer $token")
+            .redirects()
+            .follow(false)
             .`when`()
             .get("/")
             .then()

@@ -12,6 +12,9 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation("org.testcontainers:testcontainers:1.21.4")
     testImplementation("org.testcontainers:junit-jupiter:1.21.4")
+    testImplementation("dev.turingcomplete:kotlin-onetimepassword:2.4.0")
+    testImplementation("commons-codec:commons-codec:1.17.1")
+    testRuntimeOnly("org.postgresql:postgresql:42.7.6")
 }
 
 tasks.test {
