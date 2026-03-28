@@ -64,6 +64,46 @@ object TestHelper {
         return loginAndGetToken(user)
     }
 
+    fun registerConfirmAndLoginAsAdmin(
+        username: String = "adm_${UUID.randomUUID().toString().take(8)}",
+        password: String = "Test1234!",
+    ): String {
+        val user = registerAndConfirm(username, password)
+        makeUserAdmin(user.username)
+        return loginAndGetToken(user)
+    }
+
+    fun makeUserAdmin(username: String) {
+        DriverManager.getConnection(dbUrl, dbUser, dbPassword).use { conn ->
+            conn
+                .prepareStatement("UPDATE app_user SET role = 'ADMIN' WHERE username = ?")
+                .use { stmt ->
+                    stmt.setString(1, username)
+                    stmt.executeUpdate()
+                }
+        }
+    }
+
+    fun grantServicePermission(
+        username: String,
+        service: String,
+    ) {
+        DriverManager.getConnection(dbUrl, dbUser, dbPassword).use { conn ->
+            conn
+                .prepareStatement(
+                    """
+                    INSERT INTO user_service_permissions (user_id, service)
+                    SELECT id, ? FROM app_user WHERE username = ?
+                    ON CONFLICT DO NOTHING
+                    """.trimIndent(),
+                ).use { stmt ->
+                    stmt.setString(1, service)
+                    stmt.setString(2, username)
+                    stmt.executeUpdate()
+                }
+        }
+    }
+
     private fun getConfirmationTokenFromDb(username: String): String =
         DriverManager.getConnection(dbUrl, dbUser, dbPassword).use { conn ->
             conn
