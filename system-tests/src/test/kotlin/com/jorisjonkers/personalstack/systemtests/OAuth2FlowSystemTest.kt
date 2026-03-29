@@ -314,7 +314,7 @@ class OAuth2FlowSystemTest {
                 .queryParam("code_challenge_method", "S256")
                 .queryParam("state", "test-state")
                 .`when`()
-                .get("/oauth2/authorize")
+                .get("/api/oauth2/authorize")
 
         // Should redirect with authorization code
         assertThat(authorizeResponse.statusCode).isIn(302, 303)
@@ -362,7 +362,7 @@ class OAuth2FlowSystemTest {
                 .queryParam("code_challenge_method", "S256")
                 .queryParam("state", "test-state")
                 .`when`()
-                .get("/oauth2/authorize")
+                .get("/api/oauth2/authorize")
 
         assertThat(authorizeResponse.statusCode).isIn(302, 303)
 
@@ -389,7 +389,7 @@ class OAuth2FlowSystemTest {
                 .formParam("client_id", "auth-ui")
                 .formParam("code_verifier", codeVerifier)
                 .`when`()
-                .post("/oauth2/token")
+                .post("/api/oauth2/token")
                 .then()
                 .statusCode(200)
                 .extract()
