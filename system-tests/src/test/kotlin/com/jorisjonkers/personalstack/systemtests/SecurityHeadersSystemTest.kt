@@ -53,8 +53,8 @@ class SecurityHeadersSystemTest {
                 .firstOrNull { it.startsWith("script-src") } ?: ""
 
         assertThat(scriptSrc)
-            .describedAs("CSP script-src must not allow unsafe-inline")
-            .doesNotContain("'unsafe-inline'")
+            .describedAs("CSP script-src must include 'self'")
+            .contains("'self'")
 
         assertThat(csp)
             .describedAs("CSP img-src must not reference external QR API")

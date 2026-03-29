@@ -76,13 +76,15 @@ class OAuth2FlowSystemTest {
     fun `session login returns totpRequired when TOTP is enabled`() {
         val username = "oauth_totp_${UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username = username)
-        val token = TestHelper.loginAndGetToken(user)
+        val session = TestHelper.sessionLogin(user)
 
         // Enroll TOTP
         val secret =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", session.sessionCookie)
+                .cookie("XSRF-TOKEN", session.csrfToken)
+                .header("X-XSRF-TOKEN", session.csrfToken)
                 .`when`()
                 .post("/api/v1/totp/enroll")
                 .then()
@@ -95,7 +97,9 @@ class OAuth2FlowSystemTest {
         given()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session.sessionCookie)
+            .cookie("XSRF-TOKEN", session.csrfToken)
+            .header("X-XSRF-TOKEN", session.csrfToken)
             .body("""{"code":"${generateTotpCode(secret)}"}""")
             .`when`()
             .post("/api/v1/totp/verify")
@@ -124,13 +128,15 @@ class OAuth2FlowSystemTest {
     fun `session login with TOTP code creates valid session`() {
         val username = "oauth_totp2_${UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username = username)
-        val token = TestHelper.loginAndGetToken(user)
+        val session = TestHelper.sessionLogin(user)
 
         // Enroll and verify TOTP
         val secret =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", session.sessionCookie)
+                .cookie("XSRF-TOKEN", session.csrfToken)
+                .header("X-XSRF-TOKEN", session.csrfToken)
                 .`when`()
                 .post("/api/v1/totp/enroll")
                 .then()
@@ -142,7 +148,9 @@ class OAuth2FlowSystemTest {
         given()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session.sessionCookie)
+            .cookie("XSRF-TOKEN", session.csrfToken)
+            .header("X-XSRF-TOKEN", session.csrfToken)
             .body("""{"code":"${generateTotpCode(secret)}"}""")
             .`when`()
             .post("/api/v1/totp/verify")
@@ -217,9 +225,9 @@ class OAuth2FlowSystemTest {
 
         assertThat(response.statusCode).isEqualTo(200)
 
-        val sessionCookie = response.cookie("JSESSIONID")
+        val sessionCookie = response.cookie("SESSION")
         assertThat(sessionCookie)
-            .describedAs("Session login should create a JSESSIONID cookie")
+            .describedAs("Session login should create a SESSION cookie")
             .isNotNull()
             .isNotBlank()
     }
@@ -243,13 +251,15 @@ class OAuth2FlowSystemTest {
     fun `session login with TOTP enabled but wrong code returns 400`() {
         val username = "oauth_bad_${UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username = username)
-        val token = TestHelper.loginAndGetToken(user)
+        val session = TestHelper.sessionLogin(user)
 
         // Enroll and verify TOTP
         val secret =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", session.sessionCookie)
+                .cookie("XSRF-TOKEN", session.csrfToken)
+                .header("X-XSRF-TOKEN", session.csrfToken)
                 .`when`()
                 .post("/api/v1/totp/enroll")
                 .then()
@@ -261,7 +271,9 @@ class OAuth2FlowSystemTest {
         given()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session.sessionCookie)
+            .cookie("XSRF-TOKEN", session.csrfToken)
+            .header("X-XSRF-TOKEN", session.csrfToken)
             .body("""{"code":"${generateTotpCode(secret)}"}""")
             .`when`()
             .post("/api/v1/totp/verify")
@@ -293,7 +305,7 @@ class OAuth2FlowSystemTest {
                 .post("/api/v1/auth/session-login")
 
         assertThat(sessionResponse.statusCode).isEqualTo(200)
-        val sessionCookie = sessionResponse.cookie("JSESSIONID")
+        val sessionCookie = sessionResponse.cookie("SESSION")
         assertThat(sessionCookie).isNotNull()
 
         // Step 2: OAuth2 authorize with PKCE
@@ -303,7 +315,7 @@ class OAuth2FlowSystemTest {
         val authorizeResponse =
             given()
                 .baseUri(authBaseUrl)
-                .cookie("JSESSIONID", sessionCookie)
+                .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
                 .queryParam("response_type", "code")
@@ -341,7 +353,7 @@ class OAuth2FlowSystemTest {
                 .post("/api/v1/auth/session-login")
 
         assertThat(sessionResponse.statusCode).isEqualTo(200)
-        val sessionCookie = sessionResponse.cookie("JSESSIONID")
+        val sessionCookie = sessionResponse.cookie("SESSION")
         assertThat(sessionCookie).isNotNull()
 
         // Step 2: OAuth2 authorize with PKCE
@@ -351,7 +363,7 @@ class OAuth2FlowSystemTest {
         val authorizeResponse =
             given()
                 .baseUri(authBaseUrl)
-                .cookie("JSESSIONID", sessionCookie)
+                .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
                 .queryParam("response_type", "code")

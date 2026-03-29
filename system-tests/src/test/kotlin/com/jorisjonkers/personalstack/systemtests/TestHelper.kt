@@ -2,13 +2,17 @@ package com.jorisjonkers.personalstack.systemtests
 
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
+import org.assertj.core.api.Assertions.assertThat
 import java.sql.DriverManager
 import java.util.UUID
 
 /**
- * Shared helper for system tests that need to register a user and obtain a token.
+ * Shared helper for system tests that need to register a user and obtain a session.
  * Since login requires email confirmation, this helper retrieves the confirmation
  * token from the database and confirms the email before logging in.
+ *
+ * Protected endpoints use session-based auth (SESSION cookie via /session-login).
+ * The JWT login endpoint (/login) is kept for tests that verify JWT token contents.
  */
 object TestHelper {
     private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
@@ -55,6 +59,56 @@ object TestHelper {
             .extract()
             .jsonPath()
             .getString("accessToken")
+
+    fun sessionLogin(
+        user: RegisteredUser,
+        totpCode: String? = null,
+    ): SessionInfo {
+        val body =
+            if (totpCode != null) {
+                """{"username":"${user.username}","password":"${user.password}","totpCode":"$totpCode"}"""
+            } else {
+                """{"username":"${user.username}","password":"${user.password}"}"""
+            }
+
+        val response =
+            given()
+                .baseUri(authBaseUrl)
+                .contentType(ContentType.JSON)
+                .body(body)
+                .`when`()
+                .post("/api/v1/auth/session-login")
+
+        assertThat(response.statusCode).isEqualTo(200)
+        val sessionCookie =
+            response.cookie("SESSION")
+                ?: throw IllegalStateException("No SESSION cookie in response")
+        return SessionInfo(sessionCookie, UUID.randomUUID().toString())
+    }
+
+    fun sessionLoginAndGetCookie(
+        user: RegisteredUser,
+        totpCode: String? = null,
+    ): String = sessionLogin(user, totpCode).sessionCookie
+
+    fun registerConfirmAndGetSession(
+        username: String = "sys_${UUID.randomUUID().toString().take(8)}",
+        password: String = "Test1234!",
+    ): SessionUser {
+        val user = registerAndConfirm(username, password)
+        val session = sessionLogin(user)
+        return SessionUser(user, session.sessionCookie, session.csrfToken)
+    }
+
+    fun registerConfirmAndGetAdminSession(
+        username: String = "adm_${UUID.randomUUID().toString().take(8)}",
+        password: String = "Test1234!",
+    ): SessionUser {
+        val user = registerAndConfirm(username, password)
+        makeUserAdmin(user.username)
+        val session = sessionLogin(user)
+        return SessionUser(user, session.sessionCookie, session.csrfToken)
+    }
 
     fun registerConfirmAndLogin(
         username: String = "sys_${UUID.randomUUID().toString().take(8)}",
@@ -126,5 +180,16 @@ object TestHelper {
         val username: String,
         val email: String,
         val password: String,
+    )
+
+    data class SessionInfo(
+        val sessionCookie: String,
+        val csrfToken: String,
+    )
+
+    data class SessionUser(
+        val user: RegisteredUser,
+        val sessionCookie: String,
+        val csrfToken: String,
     )
 }

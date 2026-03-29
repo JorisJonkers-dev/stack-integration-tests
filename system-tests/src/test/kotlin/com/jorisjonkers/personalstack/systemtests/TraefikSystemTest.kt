@@ -28,7 +28,7 @@ class TraefikSystemTest {
     private val grafanaUrl = "http://grafana.localhost:80"
     private val stalwartUrl = "http://stalwart.localhost:80"
 
-    private fun obtainToken(): String = TestHelper.registerConfirmAndLogin()
+    private fun obtainSession(): TestHelper.SessionUser = TestHelper.registerConfirmAndGetSession()
 
     // ── UI routes (no authentication required) ───────────────────────────────
 
@@ -120,10 +120,10 @@ class TraefikSystemTest {
 
     @Test
     fun `vault authenticated passes forward-auth`() {
-        val token = obtainToken()
+        val session = obtainSession()
         given()
             .baseUri(vaultUrl)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session.sessionCookie)
             .redirects()
             .follow(false)
             .`when`()
@@ -134,10 +134,10 @@ class TraefikSystemTest {
 
     @Test
     fun `n8n authenticated passes forward-auth`() {
-        val token = obtainToken()
+        val session = obtainSession()
         given()
             .baseUri(n8nUrl)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session.sessionCookie)
             .redirects()
             .follow(false)
             .`when`()
@@ -148,10 +148,10 @@ class TraefikSystemTest {
 
     @Test
     fun `grafana authenticated passes forward-auth`() {
-        val token = obtainToken()
+        val session = obtainSession()
         given()
             .baseUri(grafanaUrl)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session.sessionCookie)
             .redirects()
             .follow(false)
             .`when`()
@@ -162,10 +162,10 @@ class TraefikSystemTest {
 
     @Test
     fun `stalwart authenticated passes forward-auth`() {
-        val token = obtainToken()
+        val session = obtainSession()
         given()
             .baseUri(stalwartUrl)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session.sessionCookie)
             .redirects()
             .follow(false)
             .`when`()

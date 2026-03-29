@@ -21,15 +21,15 @@ class CrossServiceSystemTest {
     private val assistantBaseUrl = System.getProperty("test.assistant-api.url", "http://localhost:8082")
 
     private fun registerAndAuthenticate(): String {
-        val accessToken = TestHelper.registerConfirmAndLogin()
-        return verifyAndGetUserId(accessToken)
+        val session = TestHelper.registerConfirmAndGetSession()
+        return verifyAndGetUserId(session.sessionCookie)
     }
 
-    private fun verifyAndGetUserId(accessToken: String): String {
+    private fun verifyAndGetUserId(sessionCookie: String): String {
         val userId =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $accessToken")
+                .cookie("SESSION", sessionCookie)
                 .`when`()
                 .get("/api/v1/auth/verify")
                 .then()

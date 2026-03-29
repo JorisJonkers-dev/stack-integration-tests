@@ -46,26 +46,23 @@ class RegistrationFlowSystemTest {
             .then()
             .statusCode(200)
 
-        // Step 3: Login
-        val accessToken =
+        // Step 3: Session login
+        val sessionResponse =
             given()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"$username","password":"$password"}""")
                 .`when`()
-                .post("/api/v1/auth/login")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getString("accessToken")
+                .post("/api/v1/auth/session-login")
 
-        assertThat(accessToken).isNotBlank()
+        assertThat(sessionResponse.statusCode).isEqualTo(200)
+        val sessionCookie = sessionResponse.cookie("SESSION")
+        assertThat(sessionCookie).isNotBlank()
 
-        // Step 4: Verify token works
+        // Step 4: Verify session works
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $accessToken")
+            .cookie("SESSION", sessionCookie)
             .`when`()
             .get("/api/v1/auth/verify")
             .then()

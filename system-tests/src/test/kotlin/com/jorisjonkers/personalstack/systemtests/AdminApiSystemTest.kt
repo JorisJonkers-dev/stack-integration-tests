@@ -21,12 +21,12 @@ class AdminApiSystemTest {
 
     @Test
     fun `admin can list all users`() {
-        val adminToken = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         val users =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users")
                 .then()
@@ -40,11 +40,11 @@ class AdminApiSystemTest {
 
     @Test
     fun `non-admin user is rejected from admin endpoints`() {
-        val userToken = TestHelper.registerConfirmAndLogin()
+        val userSession = TestHelper.registerConfirmAndGetSession()
 
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $userToken")
+            .cookie("SESSION", userSession.sessionCookie)
             .`when`()
             .get("/api/v1/admin/users")
             .then()
@@ -53,13 +53,13 @@ class AdminApiSystemTest {
 
     @Test
     fun `admin can update user role and service permissions`() {
-        val adminToken = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users")
                 .then()
@@ -72,7 +72,9 @@ class AdminApiSystemTest {
 
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $adminToken")
+            .cookie("SESSION", adminSession.sessionCookie)
+            .cookie("XSRF-TOKEN", adminSession.csrfToken)
+            .header("X-XSRF-TOKEN", adminSession.csrfToken)
             .contentType(ContentType.JSON)
             .body("""{"role":"READONLY"}""")
             .`when`()
@@ -83,7 +85,7 @@ class AdminApiSystemTest {
         val updated =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users/$targetId")
                 .then()
@@ -95,7 +97,9 @@ class AdminApiSystemTest {
 
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $adminToken")
+            .cookie("SESSION", adminSession.sessionCookie)
+            .cookie("XSRF-TOKEN", adminSession.csrfToken)
+            .header("X-XSRF-TOKEN", adminSession.csrfToken)
             .contentType(ContentType.JSON)
             .body("""{"services":["GRAFANA","ASSISTANT"]}""")
             .`when`()
@@ -106,7 +110,7 @@ class AdminApiSystemTest {
         val withPerms =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users/$targetId")
                 .then()
@@ -120,13 +124,13 @@ class AdminApiSystemTest {
 
     @Test
     fun `admin can delete a user account`() {
-        val adminToken = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users")
                 .then()
@@ -139,7 +143,9 @@ class AdminApiSystemTest {
 
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $adminToken")
+            .cookie("SESSION", adminSession.sessionCookie)
+            .cookie("XSRF-TOKEN", adminSession.csrfToken)
+            .header("X-XSRF-TOKEN", adminSession.csrfToken)
             .`when`()
             .delete("/api/v1/admin/users/$targetId")
             .then()
@@ -147,7 +153,7 @@ class AdminApiSystemTest {
 
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $adminToken")
+            .cookie("SESSION", adminSession.sessionCookie)
             .`when`()
             .get("/api/v1/admin/users/$targetId")
             .then()
@@ -156,7 +162,7 @@ class AdminApiSystemTest {
 
     @Test
     fun `admin can list users with pagination`() {
-        val adminToken = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         // Create a few users so the list is non-trivial
         TestHelper.registerAndConfirm()
@@ -165,7 +171,7 @@ class AdminApiSystemTest {
         val users =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users")
                 .then()
@@ -186,13 +192,13 @@ class AdminApiSystemTest {
 
     @Test
     fun `admin can update service permissions`() {
-        val adminToken = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users")
                 .then()
@@ -206,7 +212,9 @@ class AdminApiSystemTest {
         // Set service permissions
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $adminToken")
+            .cookie("SESSION", adminSession.sessionCookie)
+            .cookie("XSRF-TOKEN", adminSession.csrfToken)
+            .header("X-XSRF-TOKEN", adminSession.csrfToken)
             .contentType(ContentType.JSON)
             .body("""{"services":["GRAFANA","N8N"]}""")
             .`when`()
@@ -217,7 +225,7 @@ class AdminApiSystemTest {
         val perms =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users/$targetId")
                 .then()
@@ -231,7 +239,9 @@ class AdminApiSystemTest {
         // Update to a different set
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $adminToken")
+            .cookie("SESSION", adminSession.sessionCookie)
+            .cookie("XSRF-TOKEN", adminSession.csrfToken)
+            .header("X-XSRF-TOKEN", adminSession.csrfToken)
             .contentType(ContentType.JSON)
             .body("""{"services":["VAULT"]}""")
             .`when`()
@@ -242,7 +252,7 @@ class AdminApiSystemTest {
         val updatedPerms =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users/$targetId")
                 .then()
@@ -256,12 +266,12 @@ class AdminApiSystemTest {
 
     @Test
     fun `non-admin user gets 403 on admin endpoints`() {
-        val userToken = TestHelper.registerConfirmAndLogin()
+        val userSession = TestHelper.registerConfirmAndGetSession()
 
         // GET /admin/users
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $userToken")
+            .cookie("SESSION", userSession.sessionCookie)
             .`when`()
             .get("/api/v1/admin/users")
             .then()
@@ -271,7 +281,9 @@ class AdminApiSystemTest {
         val fakeId = UUID.randomUUID().toString()
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $userToken")
+            .cookie("SESSION", userSession.sessionCookie)
+            .cookie("XSRF-TOKEN", userSession.csrfToken)
+            .header("X-XSRF-TOKEN", userSession.csrfToken)
             .contentType(ContentType.JSON)
             .body("""{"role":"ADMIN"}""")
             .`when`()
@@ -282,7 +294,9 @@ class AdminApiSystemTest {
         // Attempt to update service permissions
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $userToken")
+            .cookie("SESSION", userSession.sessionCookie)
+            .cookie("XSRF-TOKEN", userSession.csrfToken)
+            .header("X-XSRF-TOKEN", userSession.csrfToken)
             .contentType(ContentType.JSON)
             .body("""{"services":["GRAFANA"]}""")
             .`when`()
@@ -293,13 +307,13 @@ class AdminApiSystemTest {
 
     @Test
     fun `role change reflected in next token`() {
-        val adminToken = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users")
                 .then()
@@ -313,7 +327,9 @@ class AdminApiSystemTest {
         // Change role to READONLY
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $adminToken")
+            .cookie("SESSION", adminSession.sessionCookie)
+            .cookie("XSRF-TOKEN", adminSession.csrfToken)
+            .header("X-XSRF-TOKEN", adminSession.csrfToken)
             .contentType(ContentType.JSON)
             .body("""{"role":"READONLY"}""")
             .`when`()
@@ -332,13 +348,13 @@ class AdminApiSystemTest {
 
     @Test
     fun `service permission grant reflected in next token`() {
-        val adminToken = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $adminToken")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
                 .get("/api/v1/admin/users")
                 .then()
@@ -352,7 +368,9 @@ class AdminApiSystemTest {
         // Grant GRAFANA permission
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $adminToken")
+            .cookie("SESSION", adminSession.sessionCookie)
+            .cookie("XSRF-TOKEN", adminSession.csrfToken)
+            .header("X-XSRF-TOKEN", adminSession.csrfToken)
             .contentType(ContentType.JSON)
             .body("""{"services":["GRAFANA"]}""")
             .`when`()

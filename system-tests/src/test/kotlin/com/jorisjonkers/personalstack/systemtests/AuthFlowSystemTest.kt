@@ -19,13 +19,16 @@ class AuthFlowSystemTest {
     @Test
     fun `register confirm and login successfully`() {
         val user = TestHelper.registerAndConfirm()
-        val token = TestHelper.loginAndGetToken(user)
 
+        // Verify JWT login endpoint still returns tokens
+        val token = TestHelper.loginAndGetToken(user)
         assertThat(token).isNotBlank()
 
+        // Verify session-based access to protected endpoints
+        val session = TestHelper.sessionLoginAndGetCookie(user)
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session)
             .`when`()
             .get("/api/v1/auth/verify")
             .then()

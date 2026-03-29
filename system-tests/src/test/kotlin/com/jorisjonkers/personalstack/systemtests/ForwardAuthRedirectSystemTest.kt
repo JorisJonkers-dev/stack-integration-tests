@@ -43,17 +43,15 @@ class ForwardAuthRedirectSystemTest {
     }
 
     @Test
-    fun `verify endpoint does not redirect with valid token`() {
-        val token = registerAndLogin()
+    fun `verify endpoint does not redirect with valid session`() {
+        val session = TestHelper.registerConfirmAndGetSession()
 
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $token")
+            .cookie("SESSION", session.sessionCookie)
             .`when`()
             .get("/api/v1/auth/verify")
             .then()
             .statusCode(200)
     }
-
-    private fun registerAndLogin(): String = TestHelper.registerConfirmAndLogin()
 }

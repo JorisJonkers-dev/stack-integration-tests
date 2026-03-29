@@ -68,11 +68,13 @@ class TotpReLoginSystemTest {
             .jsonPath()
     }
 
-    private fun enrollAndVerifyTotp(accessToken: String): String {
+    private fun enrollAndVerifyTotp(session: TestHelper.SessionInfo): String {
         val secret =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $accessToken")
+                .cookie("SESSION", session.sessionCookie)
+                .cookie("XSRF-TOKEN", session.csrfToken)
+                .header("X-XSRF-TOKEN", session.csrfToken)
                 .`when`()
                 .post("/api/v1/totp/enroll")
                 .then()
@@ -84,7 +86,9 @@ class TotpReLoginSystemTest {
         given()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer $accessToken")
+            .cookie("SESSION", session.sessionCookie)
+            .cookie("XSRF-TOKEN", session.csrfToken)
+            .header("X-XSRF-TOKEN", session.csrfToken)
             .body("""{"code":"${generateTotpCode(secret)}"}""")
             .`when`()
             .post("/api/v1/totp/verify")
@@ -98,15 +102,13 @@ class TotpReLoginSystemTest {
     @Test
     fun `account with TOTP can sign in multiple times with same secret`() {
         val username = "relogin_${UUID.randomUUID().toString().take(8)}"
-        registerAndConfirm(username)
+        val user = registerAndConfirm(username)
 
-        // First login — no TOTP yet, get tokens
-        val initialLogin = login(username)
-        assertThat(initialLogin.getBoolean("totpRequired")).isFalse()
-        val accessToken = initialLogin.getString("accessToken")
+        // First session login — no TOTP yet
+        val session = TestHelper.sessionLogin(user)
 
         // Enroll and verify TOTP
-        val secret = enrollAndVerifyTotp(accessToken)
+        val secret = enrollAndVerifyTotp(session)
 
         // Second login — TOTP required, complete challenge
         val secondLogin = login(username)
@@ -120,10 +122,11 @@ class TotpReLoginSystemTest {
         val thirdTokens = completeTotpChallenge(thirdLogin.getString("totpChallengeToken"), secret)
         assertThat(thirdTokens.getString("accessToken")).isNotBlank()
 
-        // Verify the final token works for forward-auth
+        // Verify session-based access works for forward-auth
+        val totpSessionCookie = TestHelper.sessionLoginAndGetCookie(user, generateTotpCode(secret))
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer ${thirdTokens.getString("accessToken")}")
+            .cookie("SESSION", totpSessionCookie)
             .`when`()
             .get("/api/v1/auth/verify")
             .then()
@@ -133,16 +136,18 @@ class TotpReLoginSystemTest {
     @Test
     fun `re-enrollment is rejected when TOTP is already enabled`() {
         val username = "reenroll_${UUID.randomUUID().toString().take(8)}"
-        registerAndConfirm(username)
+        val user = registerAndConfirm(username)
 
-        // Login, enroll, and verify TOTP
-        val accessToken = login(username).getString("accessToken")
-        enrollAndVerifyTotp(accessToken)
+        // Session login, enroll, and verify TOTP
+        val session = TestHelper.sessionLogin(user)
+        enrollAndVerifyTotp(session)
 
-        // Attempt to enroll again — should be rejected
+        // Attempt to enroll again with same session — should be rejected
         given()
             .baseUri(authBaseUrl)
-            .header("Authorization", "Bearer $accessToken")
+            .cookie("SESSION", session.sessionCookie)
+            .cookie("XSRF-TOKEN", session.csrfToken)
+            .header("X-XSRF-TOKEN", session.csrfToken)
             .`when`()
             .post("/api/v1/totp/enroll")
             .then()

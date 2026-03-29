@@ -101,12 +101,12 @@ class ForwardAuthChainSystemTest {
         baseUrl: String,
         @Suppress("UNUSED_PARAMETER") path: String,
     ) {
-        val token = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         val response =
             given()
                 .baseUri(baseUrl)
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .redirects()
                 .follow(false)
                 .`when`()
@@ -126,12 +126,12 @@ class ForwardAuthChainSystemTest {
         baseUrl: String,
         path: String,
     ) {
-        val token = TestHelper.registerConfirmAndLogin()
+        val userSession = TestHelper.registerConfirmAndGetSession()
 
         val response =
             given()
                 .baseUri(baseUrl)
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", userSession.sessionCookie)
                 .redirects()
                 .follow(false)
                 .`when`()
@@ -144,12 +144,12 @@ class ForwardAuthChainSystemTest {
 
     @Test
     fun `forward-auth propagates X-User-Id header`() {
-        val token = TestHelper.registerConfirmAndLogin()
+        val session = TestHelper.registerConfirmAndGetSession()
 
         val userId =
             given()
                 .baseUri(authBaseUrl)
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", session.sessionCookie)
                 .`when`()
                 .get("/api/v1/auth/verify")
                 .then()
@@ -166,12 +166,12 @@ class ForwardAuthChainSystemTest {
         val username = "svc_${java.util.UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username)
         TestHelper.grantServicePermission(username, "GRAFANA")
-        val token = TestHelper.loginAndGetToken(user)
+        val sessionCookie = TestHelper.sessionLoginAndGetCookie(user)
 
         val response =
             given()
                 .baseUri("http://grafana.localhost:80")
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
                 .`when`()
@@ -189,17 +189,7 @@ class ForwardAuthChainSystemTest {
         TestHelper.makeUserAdmin(user.username)
 
         // Session login to get session cookie
-        val sessionResponse =
-            given()
-                .baseUri(authBaseUrl)
-                .contentType(ContentType.JSON)
-                .body("""{"username":"${user.username}","password":"${user.password}"}""")
-                .`when`()
-                .post("/api/v1/auth/session-login")
-
-        assertThat(sessionResponse.statusCode).isEqualTo(200)
-        val sessionCookie = sessionResponse.cookie("JSESSIONID")
-        assertThat(sessionCookie).isNotNull()
+        val sessionCookie = TestHelper.sessionLoginAndGetCookie(user)
 
         // OAuth2 authorize with PKCE to get an access token
         val codeVerifier = generateCodeVerifier()
@@ -208,7 +198,7 @@ class ForwardAuthChainSystemTest {
         val authorizeResponse =
             given()
                 .baseUri(authBaseUrl)
-                .cookie("JSESSIONID", sessionCookie)
+                .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
                 .queryParam("response_type", "code")
@@ -263,12 +253,12 @@ class ForwardAuthChainSystemTest {
     fun `forward-auth without service permission returns 403`() {
         val username = "noperm_${java.util.UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username)
-        val token = TestHelper.loginAndGetToken(user)
+        val sessionCookie = TestHelper.sessionLoginAndGetCookie(user)
 
         val response =
             given()
                 .baseUri("http://grafana.localhost:80")
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
                 .`when`()
@@ -315,12 +305,12 @@ class ForwardAuthChainSystemTest {
         serviceName: String,
         baseUrl: String,
     ) {
-        val token = TestHelper.registerConfirmAndLoginAsAdmin()
+        val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         val response =
             given()
                 .baseUri(baseUrl)
-                .header("Authorization", "Bearer $token")
+                .cookie("SESSION", adminSession.sessionCookie)
                 .redirects()
                 .follow(false)
                 .`when`()
