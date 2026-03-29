@@ -17,6 +17,7 @@ import org.junit.jupiter.api.TestInstance
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SessionSecuritySystemTest {
     private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private val appUiUrl = System.getProperty("test.app-ui.url", "https://jorisjonkers.test")
 
     @Test
     fun `session cookie is HttpOnly`() {
@@ -99,7 +100,7 @@ class SessionSecuritySystemTest {
         val response =
             given()
                 .baseUri(authBaseUrl)
-                .header("Origin", "http://localhost:5174")
+                .header("Origin", appUiUrl)
                 .header("Access-Control-Request-Method", "POST")
                 .header("Access-Control-Request-Headers", "Content-Type")
                 .`when`()
@@ -110,7 +111,7 @@ class SessionSecuritySystemTest {
         val allowOrigin = response.header("Access-Control-Allow-Origin")
         assertThat(allowOrigin)
             .describedAs("CORS should allow the requesting origin")
-            .isEqualTo("http://localhost:5174")
+            .isEqualTo(appUiUrl)
 
         val allowCredentials = response.header("Access-Control-Allow-Credentials")
         assertThat(allowCredentials)

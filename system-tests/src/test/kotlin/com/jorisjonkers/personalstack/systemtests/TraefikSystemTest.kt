@@ -15,18 +15,18 @@ import org.junit.jupiter.api.Test
  */
 @Tag("system")
 class TraefikSystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private fun traefikRequest() = given().relaxedHTTPSValidation()
 
     // UI services
-    private val appUiUrl = "http://localhost:80"
-    private val authUiUrl = "http://auth.localhost:80"
-    private val assistantUiUrl = "http://assistant.localhost:80"
+    private val appUiUrl = "https://jorisjonkers.test"
+    private val authUiUrl = "https://auth.jorisjonkers.test"
+    private val assistantUiUrl = "https://assistant.jorisjonkers.test"
 
     // Forward-auth protected services
-    private val vaultUrl = "http://vault.localhost:80"
-    private val n8nUrl = "http://n8n.localhost:80"
-    private val grafanaUrl = "http://grafana.localhost:80"
-    private val stalwartUrl = "http://stalwart.localhost:80"
+    private val vaultUrl = "https://vault.jorisjonkers.test"
+    private val n8nUrl = "https://n8n.jorisjonkers.test"
+    private val grafanaUrl = "https://grafana.jorisjonkers.test"
+    private val stalwartUrl = "https://stalwart.jorisjonkers.test"
 
     private fun obtainSession(): TestHelper.SessionUser = TestHelper.registerConfirmAndGetSession()
 
@@ -34,7 +34,7 @@ class TraefikSystemTest {
 
     @Test
     fun `app-ui responds at localhost`() {
-        given()
+        traefikRequest()
             .baseUri(appUiUrl)
             .`when`()
             .get("/")
@@ -44,7 +44,7 @@ class TraefikSystemTest {
 
     @Test
     fun `auth-ui responds at auth dot localhost`() {
-        given()
+        traefikRequest()
             .baseUri(authUiUrl)
             .`when`()
             .get("/")
@@ -54,7 +54,7 @@ class TraefikSystemTest {
 
     @Test
     fun `assistant-ui responds at app dot localhost`() {
-        given()
+        traefikRequest()
             .baseUri(assistantUiUrl)
             .`when`()
             .get("/")
@@ -66,7 +66,7 @@ class TraefikSystemTest {
 
     @Test
     fun `vault unauthenticated redirects to auth login`() {
-        given()
+        traefikRequest()
             .baseUri(vaultUrl)
             .redirects()
             .follow(false)
@@ -74,12 +74,12 @@ class TraefikSystemTest {
             .get("/")
             .then()
             .statusCode(302)
-            .header("Location", containsString("auth.localhost/login"))
+            .header("Location", containsString("auth.jorisjonkers.test/login"))
     }
 
     @Test
     fun `n8n unauthenticated redirects to auth login`() {
-        given()
+        traefikRequest()
             .baseUri(n8nUrl)
             .redirects()
             .follow(false)
@@ -87,12 +87,12 @@ class TraefikSystemTest {
             .get("/")
             .then()
             .statusCode(302)
-            .header("Location", containsString("auth.localhost/login"))
+            .header("Location", containsString("auth.jorisjonkers.test/login"))
     }
 
     @Test
     fun `grafana unauthenticated redirects to auth login`() {
-        given()
+        traefikRequest()
             .baseUri(grafanaUrl)
             .redirects()
             .follow(false)
@@ -100,12 +100,12 @@ class TraefikSystemTest {
             .get("/")
             .then()
             .statusCode(302)
-            .header("Location", containsString("auth.localhost/login"))
+            .header("Location", containsString("auth.jorisjonkers.test/login"))
     }
 
     @Test
     fun `stalwart unauthenticated redirects to auth login`() {
-        given()
+        traefikRequest()
             .baseUri(stalwartUrl)
             .redirects()
             .follow(false)
@@ -113,7 +113,7 @@ class TraefikSystemTest {
             .get("/")
             .then()
             .statusCode(302)
-            .header("Location", containsString("auth.localhost/login"))
+            .header("Location", containsString("auth.jorisjonkers.test/login"))
     }
 
     // ── Authenticated: forward-auth passes, downstream service responds ───────
@@ -121,7 +121,7 @@ class TraefikSystemTest {
     @Test
     fun `vault authenticated passes forward-auth`() {
         val session = obtainSession()
-        given()
+        traefikRequest()
             .baseUri(vaultUrl)
             .cookie("SESSION", session.sessionCookie)
             .redirects()
@@ -129,13 +129,13 @@ class TraefikSystemTest {
             .`when`()
             .get("/")
             .then()
-            .header("Location", not(containsString("auth.localhost/login")))
+            .header("Location", not(containsString("auth.jorisjonkers.test/login")))
     }
 
     @Test
     fun `n8n authenticated passes forward-auth`() {
         val session = obtainSession()
-        given()
+        traefikRequest()
             .baseUri(n8nUrl)
             .cookie("SESSION", session.sessionCookie)
             .redirects()
@@ -143,13 +143,13 @@ class TraefikSystemTest {
             .`when`()
             .get("/")
             .then()
-            .header("Location", not(containsString("auth.localhost/login")))
+            .header("Location", not(containsString("auth.jorisjonkers.test/login")))
     }
 
     @Test
     fun `grafana authenticated passes forward-auth`() {
         val session = obtainSession()
-        given()
+        traefikRequest()
             .baseUri(grafanaUrl)
             .cookie("SESSION", session.sessionCookie)
             .redirects()
@@ -157,13 +157,13 @@ class TraefikSystemTest {
             .`when`()
             .get("/")
             .then()
-            .header("Location", not(containsString("auth.localhost/login")))
+            .header("Location", not(containsString("auth.jorisjonkers.test/login")))
     }
 
     @Test
     fun `stalwart authenticated passes forward-auth`() {
         val session = obtainSession()
-        given()
+        traefikRequest()
             .baseUri(stalwartUrl)
             .cookie("SESSION", session.sessionCookie)
             .redirects()
@@ -171,6 +171,6 @@ class TraefikSystemTest {
             .`when`()
             .get("/")
             .then()
-            .header("Location", not(containsString("auth.localhost/login")))
+            .header("Location", not(containsString("auth.jorisjonkers.test/login")))
     }
 }

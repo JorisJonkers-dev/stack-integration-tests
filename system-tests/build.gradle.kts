@@ -15,6 +15,7 @@ dependencies {
     testImplementation("dev.turingcomplete:kotlin-onetimepassword:2.4.0")
     testImplementation("commons-codec:commons-codec:1.17.1")
     testRuntimeOnly("org.postgresql:postgresql:42.7.6")
+    testImplementation("com.microsoft.playwright:playwright:1.52.0")
 }
 
 tasks.test {

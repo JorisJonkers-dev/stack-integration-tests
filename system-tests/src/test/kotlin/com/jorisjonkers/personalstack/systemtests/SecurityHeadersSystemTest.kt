@@ -14,13 +14,15 @@ import java.util.stream.Stream
  */
 @Tag("system")
 class SecurityHeadersSystemTest {
+    private fun traefikRequest() = given().relaxedHTTPSValidation()
+
     companion object {
         @JvmStatic
         fun uiEndpoints(): Stream<Arguments> =
             Stream.of(
-                Arguments.of("app-ui", "http://localhost:80", "/"),
-                Arguments.of("auth-ui", "http://auth.localhost:80", "/"),
-                Arguments.of("assistant-ui", "http://assistant.localhost:80", "/"),
+                Arguments.of("app-ui", "https://jorisjonkers.test", "/"),
+                Arguments.of("auth-ui", "https://auth.jorisjonkers.test", "/"),
+                Arguments.of("assistant-ui", "https://assistant.jorisjonkers.test", "/"),
             )
     }
 
@@ -32,7 +34,7 @@ class SecurityHeadersSystemTest {
         path: String,
     ) {
         val csp =
-            given()
+            traefikRequest()
                 .baseUri(baseUrl)
                 .`when`()
                 .get(path)
@@ -68,7 +70,7 @@ class SecurityHeadersSystemTest {
         baseUrl: String,
         path: String,
     ) {
-        given()
+        traefikRequest()
             .baseUri(baseUrl)
             .`when`()
             .get(path)
@@ -84,7 +86,7 @@ class SecurityHeadersSystemTest {
         baseUrl: String,
         path: String,
     ) {
-        given()
+        traefikRequest()
             .baseUri(baseUrl)
             .`when`()
             .get(path)
@@ -101,7 +103,7 @@ class SecurityHeadersSystemTest {
         path: String,
     ) {
         val referrerPolicy =
-            given()
+            traefikRequest()
                 .baseUri(baseUrl)
                 .`when`()
                 .get(path)
