@@ -104,7 +104,7 @@ object TestHelper {
         }
     }
 
-    private fun getConfirmationTokenFromDb(username: String): String =
+    fun getConfirmationTokenFromDb(username: String): String =
         DriverManager.getConnection(dbUrl, dbUser, dbPassword).use { conn ->
             conn
                 .prepareStatement(

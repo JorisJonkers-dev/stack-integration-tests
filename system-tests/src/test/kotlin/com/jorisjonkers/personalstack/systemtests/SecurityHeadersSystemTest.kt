@@ -47,7 +47,8 @@ class SecurityHeadersSystemTest {
             .isNotBlank()
 
         val scriptSrc =
-            csp.split(";")
+            csp
+                .split(";")
                 .map { it.trim() }
                 .firstOrNull { it.startsWith("script-src") } ?: ""
 

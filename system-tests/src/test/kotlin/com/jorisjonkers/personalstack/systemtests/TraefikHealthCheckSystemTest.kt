@@ -29,7 +29,12 @@ class TraefikHealthCheckSystemTest {
         fun v1HealthEndpoints(): Stream<Arguments> =
             Stream.of(
                 Arguments.of("auth-api /v1/health", "http://auth.localhost:80", "/api/v1/health", "auth-api"),
-                Arguments.of("assistant-api /v1/health", "http://assistant.localhost:80", "/api/v1/health", "assistant-api"),
+                Arguments.of(
+                    "assistant-api /v1/health",
+                    "http://assistant.localhost:80",
+                    "/api/v1/health",
+                    "assistant-api",
+                ),
             )
 
         @JvmStatic
