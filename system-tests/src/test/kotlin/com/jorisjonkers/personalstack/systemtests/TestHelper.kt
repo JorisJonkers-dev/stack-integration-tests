@@ -1,10 +1,15 @@
 package com.jorisjonkers.personalstack.systemtests
 
+import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
+import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
+import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
+import org.apache.commons.codec.binary.Base32
 import org.assertj.core.api.Assertions.assertThat
 import java.sql.DriverManager
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 /**
  * Shared helper for system tests that need to register a user and obtain a session.
@@ -15,6 +20,9 @@ import java.util.UUID
  * The JWT login endpoint (/login) is kept for tests that verify JWT token contents.
  */
 object TestHelper {
+    private const val TOTP_STEP_SECONDS = 30L
+    private const val TOTP_MIN_VALIDITY_SECONDS = 5L
+
     private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
     private val dbUrl = System.getProperty("test.db.url", "jdbc:postgresql://localhost:5432/auth_db")
     private val dbUser = System.getProperty("test.db.user", "auth_user")
@@ -59,6 +67,26 @@ object TestHelper {
             .extract()
             .jsonPath()
             .getString("accessToken")
+
+    fun generateFreshTotpCode(secret: String): String {
+        val stepMillis = TimeUnit.SECONDS.toMillis(TOTP_STEP_SECONDS)
+        val now = System.currentTimeMillis()
+        val millisUntilNextStep = stepMillis - (now % stepMillis)
+        if (millisUntilNextStep <= TimeUnit.SECONDS.toMillis(TOTP_MIN_VALIDITY_SECONDS)) {
+            Thread.sleep(millisUntilNextStep + 250)
+        }
+
+        val padded = secret.padEnd((secret.length + 7) / 8 * 8, '=')
+        val secretBytes = Base32().decode(padded)
+        val config =
+            TimeBasedOneTimePasswordConfig(
+                codeDigits = 6,
+                hmacAlgorithm = HmacAlgorithm.SHA1,
+                timeStep = TOTP_STEP_SECONDS,
+                timeStepUnit = TimeUnit.SECONDS,
+            )
+        return TimeBasedOneTimePasswordGenerator(secretBytes, config).generate()
+    }
 
     fun sessionLogin(
         user: RegisteredUser,

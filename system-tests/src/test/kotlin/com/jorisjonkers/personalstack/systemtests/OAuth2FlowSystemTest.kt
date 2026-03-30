@@ -164,7 +164,7 @@ class OAuth2FlowSystemTest {
                 .contentType(ContentType.JSON)
                 .body(
                     """{"username":"${user.username}","password":"${user.password}",""" +
-                        """"totpCode":"${generateTotpCode(secret)}"}""",
+                        """"totpCode":"${TestHelper.generateFreshTotpCode(secret)}"}""",
                 ).`when`()
                 .post("/api/v1/auth/session-login")
                 .then()

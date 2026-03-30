@@ -11,6 +11,8 @@ import com.microsoft.playwright.options.SameSiteAttribute
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
+import io.restassured.RestAssured.given
+import io.restassured.http.ContentType
 import org.apache.commons.codec.binary.Base32
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -110,6 +112,37 @@ abstract class PlaywrightTestBase {
         TestHelper.makeUserAdmin(user.username)
         loginViaApi(user)
         return user
+    }
+
+    protected fun enrollTotpViaApi(user: TestHelper.RegisteredUser): String {
+        val session = TestHelper.sessionLogin(user)
+        val authApiUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+
+        val secret =
+            given()
+                .baseUri(authApiUrl)
+                .cookie("SESSION", session.sessionCookie)
+                .cookie("XSRF-TOKEN", session.csrfToken)
+                .header("X-XSRF-TOKEN", session.csrfToken)
+                .post("/api/v1/totp/enroll")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getString("secret")
+
+        given()
+            .baseUri(authApiUrl)
+            .contentType(ContentType.JSON)
+            .cookie("SESSION", session.sessionCookie)
+            .cookie("XSRF-TOKEN", session.csrfToken)
+            .header("X-XSRF-TOKEN", session.csrfToken)
+            .body("""{"code":"${generateTotpCode(secret)}"}""")
+            .post("/api/v1/totp/verify")
+            .then()
+            .statusCode(204)
+
+        return secret
     }
 
     protected fun generateTotpCode(secret: String): String {

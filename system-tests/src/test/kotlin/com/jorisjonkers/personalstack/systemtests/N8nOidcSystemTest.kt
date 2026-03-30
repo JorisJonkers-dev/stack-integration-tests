@@ -10,7 +10,7 @@ import org.junit.jupiter.api.TestInstance
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class N8nOidcSystemTest {
     @Test
-    fun `n8n delegates login to auth service after forward-auth passes`() {
+    fun `n8n delegates login to auth service through oidc`() {
         val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         val response =

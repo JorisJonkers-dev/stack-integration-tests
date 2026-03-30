@@ -123,7 +123,7 @@ class TotpReLoginSystemTest {
         assertThat(thirdTokens.getString("accessToken")).isNotBlank()
 
         // Verify session-based access works for forward-auth
-        val totpSessionCookie = TestHelper.sessionLoginAndGetCookie(user, generateTotpCode(secret))
+        val totpSessionCookie = TestHelper.sessionLoginAndGetCookie(user, TestHelper.generateFreshTotpCode(secret))
         given()
             .baseUri(authBaseUrl)
             .cookie("SESSION", totpSessionCookie)

@@ -103,38 +103,4 @@ class AuthTotpFlowTest : PlaywrightTestBase() {
             Page.WaitForURLOptions().setTimeout(10000.0),
         )
     }
-
-    private fun enrollTotpViaApi(user: com.jorisjonkers.personalstack.systemtests.TestHelper.RegisteredUser): String {
-        val session =
-            com.jorisjonkers.personalstack.systemtests.TestHelper
-                .sessionLogin(user)
-
-        val secret =
-            io.restassured.RestAssured
-                .given()
-                .baseUri(System.getProperty("test.auth-api.url", "http://localhost:8081"))
-                .cookie("SESSION", session.sessionCookie)
-                .cookie("XSRF-TOKEN", session.csrfToken)
-                .header("X-XSRF-TOKEN", session.csrfToken)
-                .post("/api/v1/totp/enroll")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getString("secret")
-
-        io.restassured.RestAssured
-            .given()
-            .baseUri(System.getProperty("test.auth-api.url", "http://localhost:8081"))
-            .contentType(io.restassured.http.ContentType.JSON)
-            .cookie("SESSION", session.sessionCookie)
-            .cookie("XSRF-TOKEN", session.csrfToken)
-            .header("X-XSRF-TOKEN", session.csrfToken)
-            .body("""{"code":"${generateTotpCode(secret)}"}""")
-            .post("/api/v1/totp/verify")
-            .then()
-            .statusCode(204)
-
-        return secret
-    }
 }

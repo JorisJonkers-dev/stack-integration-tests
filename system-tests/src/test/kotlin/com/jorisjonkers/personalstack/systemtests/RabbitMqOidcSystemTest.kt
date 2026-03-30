@@ -10,7 +10,7 @@ import org.junit.jupiter.api.TestInstance
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RabbitMqOidcSystemTest {
     @Test
-    fun `rabbitmq management stays hidden until forward-auth passes and then serves the ui`() {
+    fun `rabbitmq management serves the ui once the service session is established`() {
         val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         given()

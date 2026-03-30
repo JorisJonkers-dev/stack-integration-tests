@@ -17,7 +17,7 @@ import java.util.stream.Stream
 /**
  * System test: full forward-auth redirect chain through Traefik.
  *
- * Validates the complete flow for every protected service:
+ * Validates the complete flow for the services that still use Traefik forward-auth:
  *   1. Unauthenticated request redirects to auth login with redirect URL
  *   2. Redirect URL encodes the original service hostname
  *   3. ADMIN authenticated request passes forward-auth and reaches the service
@@ -33,29 +33,19 @@ class ForwardAuthChainSystemTest {
 
     companion object {
         @JvmStatic
-        fun protectedServices(): Stream<Arguments> =
+        fun forwardAuthServices(): Stream<Arguments> =
             Stream.of(
-                Arguments.of("vault", "https://vault.jorisjonkers.test", "/"),
-                Arguments.of("rabbitmq", "https://rabbitmq.jorisjonkers.test", "/"),
                 Arguments.of("mail", "https://mail.jorisjonkers.test", "/"),
-                Arguments.of("n8n", "https://n8n.jorisjonkers.test", "/"),
-                Arguments.of("grafana", "https://grafana.jorisjonkers.test", "/d/dashboard"),
                 Arguments.of("traefik", "https://traefik.jorisjonkers.test", "/dashboard/"),
                 Arguments.of("stalwart", "https://stalwart.jorisjonkers.test", "/"),
             )
 
         @JvmStatic
-        fun allServiceHosts(): Stream<Arguments> =
+        fun forwardAuthHosts(): Stream<Arguments> =
             Stream.of(
-                Arguments.of("vault", "https://vault.jorisjonkers.test"),
-                Arguments.of("rabbitmq", "https://rabbitmq.jorisjonkers.test"),
                 Arguments.of("mail", "https://mail.jorisjonkers.test"),
-                Arguments.of("n8n", "https://n8n.jorisjonkers.test"),
-                Arguments.of("grafana", "https://grafana.jorisjonkers.test"),
                 Arguments.of("traefik", "https://traefik.jorisjonkers.test"),
                 Arguments.of("stalwart", "https://stalwart.jorisjonkers.test"),
-                Arguments.of("assistant", "https://assistant.jorisjonkers.test"),
-                Arguments.of("auth", "https://auth.jorisjonkers.test"),
             )
     }
 
@@ -71,7 +61,7 @@ class ForwardAuthChainSystemTest {
     }
 
     @ParameterizedTest(name = "{0}: unauthenticated request redirects to login with redirect URL")
-    @MethodSource("protectedServices")
+    @MethodSource("forwardAuthServices")
     fun `unauthenticated request redirects to login with service redirect URL`(
         serviceName: String,
         baseUrl: String,
@@ -101,7 +91,7 @@ class ForwardAuthChainSystemTest {
 
     @Suppress("UnusedParameter")
     @ParameterizedTest(name = "{0}: ADMIN passes forward-auth for all services")
-    @MethodSource("protectedServices")
+    @MethodSource("forwardAuthServices")
     fun `admin authenticated request passes forward-auth`(
         serviceName: String,
         baseUrl: String,
@@ -126,7 +116,7 @@ class ForwardAuthChainSystemTest {
     }
 
     @ParameterizedTest(name = "{0}: USER without permission is denied by forward-auth")
-    @MethodSource("protectedServices")
+    @MethodSource("forwardAuthServices")
     fun `user without service permission is denied access`(
         serviceName: String,
         baseUrl: String,
@@ -171,12 +161,12 @@ class ForwardAuthChainSystemTest {
     fun `user with granted service permission passes forward-auth for that service`() {
         val username = "svc_${java.util.UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username)
-        TestHelper.grantServicePermission(username, "GRAFANA")
+        TestHelper.grantServicePermission(username, "MAIL")
         val sessionCookie = TestHelper.sessionLoginAndGetCookie(user)
 
         val response =
             traefikRequest()
-                .baseUri("https://grafana.jorisjonkers.test")
+                .baseUri("https://mail.jorisjonkers.test")
                 .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
@@ -184,7 +174,7 @@ class ForwardAuthChainSystemTest {
                 .get("/")
 
         assertThat(response.statusCode)
-            .describedAs("USER with GRAFANA permission should pass grafana forward-auth")
+            .describedAs("USER with MAIL permission should pass mail forward-auth")
             .isNotEqualTo(403)
         assertThat(response.statusCode).isNotEqualTo(401)
     }
@@ -267,7 +257,7 @@ class ForwardAuthChainSystemTest {
 
         val response =
             traefikRequest()
-                .baseUri("https://grafana.jorisjonkers.test")
+                .baseUri("https://mail.jorisjonkers.test")
                 .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
@@ -310,8 +300,8 @@ class ForwardAuthChainSystemTest {
     }
 
     @ParameterizedTest(name = "{0}: forward-auth works for registered service host")
-    @MethodSource("allServiceHosts")
-    fun `forward-auth works for all registered service hosts`(
+    @MethodSource("forwardAuthHosts")
+    fun `forward-auth works for all configured forward-auth hosts`(
         serviceName: String,
         baseUrl: String,
     ) {

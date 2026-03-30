@@ -48,8 +48,8 @@ class ProtectedPageRedirectTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `forward-auth protected service redirects to login`() {
-        page.navigate("https://vault.jorisjonkers.test")
+    fun `mail protected service redirects to login`() {
+        page.navigate("https://mail.jorisjonkers.test")
 
         page.waitForURL(
             { it.contains("login") },
@@ -58,10 +58,10 @@ class ProtectedPageRedirectTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `forward-auth protected service accessible after login as admin`() {
+    fun `mail protected service accessible after login as admin`() {
         loginAsAdmin()
 
-        page.navigate("https://grafana.jorisjonkers.test")
+        page.navigate("https://mail.jorisjonkers.test")
         page.waitForLoadState()
         page.waitForTimeout(5000.0)
 
