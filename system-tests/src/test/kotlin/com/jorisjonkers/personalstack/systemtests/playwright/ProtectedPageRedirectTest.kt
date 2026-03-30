@@ -49,7 +49,7 @@ class ProtectedPageRedirectTest : PlaywrightTestBase() {
 
     @Test
     fun `mail protected service redirects to login`() {
-        page.navigate("https://mail.jorisjonkers.test")
+        page.navigate("https://stalwart.jorisjonkers.test")
 
         page.waitForURL(
             { it.contains("login") },
@@ -61,7 +61,7 @@ class ProtectedPageRedirectTest : PlaywrightTestBase() {
     fun `mail protected service accessible after login as admin`() {
         loginAsAdmin()
 
-        page.navigate("https://mail.jorisjonkers.test")
+        page.navigate("https://stalwart.jorisjonkers.test")
         page.waitForLoadState()
         page.waitForTimeout(5000.0)
 

@@ -68,7 +68,7 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(3000.0)
 
-        val mailCard = page.locator("a[href='https://mail.jorisjonkers.test/']")
+        val mailCard = page.locator("a[href='https://stalwart.jorisjonkers.test/']")
         val vaultCard = page.locator("a[href='https://vault.jorisjonkers.test/']")
         val n8nCard = page.locator("a[href='https://n8n.jorisjonkers.test/']")
 

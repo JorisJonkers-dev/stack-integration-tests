@@ -29,7 +29,7 @@ class TraefikSystemTest {
     private val grafanaUrl = "https://grafana.jorisjonkers.test"
 
     // Forward-auth protected services
-    private val mailUrl = "https://mail.jorisjonkers.test"
+    private val mailUrl = "https://stalwart.jorisjonkers.test"
     private val stalwartUrl = "https://stalwart.jorisjonkers.test"
 
     private fun obtainAdminSession(): TestHelper.SessionUser = TestHelper.registerConfirmAndGetAdminSession()

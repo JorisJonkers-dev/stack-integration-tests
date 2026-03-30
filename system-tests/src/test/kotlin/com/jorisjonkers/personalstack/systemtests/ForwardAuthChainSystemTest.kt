@@ -35,7 +35,6 @@ class ForwardAuthChainSystemTest {
         @JvmStatic
         fun forwardAuthServices(): Stream<Arguments> =
             Stream.of(
-                Arguments.of("mail", "https://mail.jorisjonkers.test", "/"),
                 Arguments.of("traefik", "https://traefik.jorisjonkers.test", "/dashboard/"),
                 Arguments.of("stalwart", "https://stalwart.jorisjonkers.test", "/"),
             )
@@ -43,7 +42,6 @@ class ForwardAuthChainSystemTest {
         @JvmStatic
         fun forwardAuthHosts(): Stream<Arguments> =
             Stream.of(
-                Arguments.of("mail", "https://mail.jorisjonkers.test"),
                 Arguments.of("traefik", "https://traefik.jorisjonkers.test"),
                 Arguments.of("stalwart", "https://stalwart.jorisjonkers.test"),
             )
@@ -166,7 +164,7 @@ class ForwardAuthChainSystemTest {
 
         val response =
             traefikRequest()
-                .baseUri("https://mail.jorisjonkers.test")
+                .baseUri("https://stalwart.jorisjonkers.test")
                 .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
@@ -257,7 +255,7 @@ class ForwardAuthChainSystemTest {
 
         val response =
             traefikRequest()
-                .baseUri("https://mail.jorisjonkers.test")
+                .baseUri("https://stalwart.jorisjonkers.test")
                 .cookie("SESSION", sessionCookie)
                 .redirects()
                 .follow(false)
