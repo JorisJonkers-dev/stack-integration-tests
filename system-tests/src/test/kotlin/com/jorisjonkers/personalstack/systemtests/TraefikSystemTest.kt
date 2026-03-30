@@ -1,8 +1,8 @@
 package com.jorisjonkers.personalstack.systemtests
 
 import io.restassured.RestAssured.given
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.containsString
-import org.hamcrest.Matchers.not
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
  * System tests that go through Traefik (port 80) using virtual-host URLs.
  * Each service URL resolves to 127.0.0.1 (Traefik), which routes by Host header.
  * Verifies UI routes are accessible and that forward-auth protects
- * vault, n8n, and grafana — redirecting unauthenticated requests to the
+ * vault, rabbitmq, n8n, and grafana — redirecting unauthenticated requests to the
  * auth login page and passing authenticated requests through.
  */
 @Tag("system")
@@ -24,11 +24,13 @@ class TraefikSystemTest {
 
     // Forward-auth protected services
     private val vaultUrl = "https://vault.jorisjonkers.test"
+    private val rabbitMqUrl = "https://rabbitmq.jorisjonkers.test"
+    private val mailUrl = "https://mail.jorisjonkers.test"
     private val n8nUrl = "https://n8n.jorisjonkers.test"
     private val grafanaUrl = "https://grafana.jorisjonkers.test"
     private val stalwartUrl = "https://stalwart.jorisjonkers.test"
 
-    private fun obtainSession(): TestHelper.SessionUser = TestHelper.registerConfirmAndGetSession()
+    private fun obtainAdminSession(): TestHelper.SessionUser = TestHelper.registerConfirmAndGetAdminSession()
 
     // ── UI routes (no authentication required) ───────────────────────────────
 
@@ -68,6 +70,32 @@ class TraefikSystemTest {
     fun `vault unauthenticated redirects to auth login`() {
         traefikRequest()
             .baseUri(vaultUrl)
+            .redirects()
+            .follow(false)
+            .`when`()
+            .get("/")
+            .then()
+            .statusCode(302)
+            .header("Location", containsString("auth.jorisjonkers.test/login"))
+    }
+
+    @Test
+    fun `mail unauthenticated redirects to auth login`() {
+        traefikRequest()
+            .baseUri(mailUrl)
+            .redirects()
+            .follow(false)
+            .`when`()
+            .get("/")
+            .then()
+            .statusCode(302)
+            .header("Location", containsString("auth.jorisjonkers.test/login"))
+    }
+
+    @Test
+    fun `rabbitmq unauthenticated redirects to auth login`() {
+        traefikRequest()
+            .baseUri(rabbitMqUrl)
             .redirects()
             .follow(false)
             .`when`()
@@ -120,57 +148,96 @@ class TraefikSystemTest {
 
     @Test
     fun `vault authenticated passes forward-auth`() {
-        val session = obtainSession()
+        val session = obtainAdminSession()
+        val response =
+            traefikRequest()
+                .baseUri(vaultUrl)
+                .cookie("SESSION", session.sessionCookie)
+                .redirects()
+                .follow(false)
+                .`when`()
+                .get("/")
+
+        assertThat(response.statusCode).isNotIn(401, 403)
+        assertThat(response.header("Location").orEmpty()).doesNotContain("auth.jorisjonkers.test/login")
+    }
+
+    @Test
+    fun `mail authenticated passes forward-auth`() {
+        val session = obtainAdminSession()
+        val response =
+            traefikRequest()
+                .baseUri(mailUrl)
+                .cookie("SESSION", session.sessionCookie)
+                .redirects()
+                .follow(false)
+                .`when`()
+                .get("/")
+
+        assertThat(response.statusCode).isNotIn(401, 403)
+        assertThat(response.header("Location").orEmpty()).doesNotContain("auth.jorisjonkers.test/login")
+    }
+
+    @Test
+    fun `rabbitmq authenticated passes forward-auth`() {
+        val session = obtainAdminSession()
         traefikRequest()
-            .baseUri(vaultUrl)
+            .baseUri(rabbitMqUrl)
             .cookie("SESSION", session.sessionCookie)
             .redirects()
             .follow(false)
             .`when`()
             .get("/")
             .then()
-            .header("Location", not(containsString("auth.jorisjonkers.test/login")))
+            .statusCode(200)
     }
 
     @Test
     fun `n8n authenticated passes forward-auth`() {
-        val session = obtainSession()
-        traefikRequest()
-            .baseUri(n8nUrl)
-            .cookie("SESSION", session.sessionCookie)
-            .redirects()
-            .follow(false)
-            .`when`()
-            .get("/")
-            .then()
-            .header("Location", not(containsString("auth.jorisjonkers.test/login")))
+        val session = obtainAdminSession()
+        val response =
+            traefikRequest()
+                .baseUri(n8nUrl)
+                .cookie("SESSION", session.sessionCookie)
+                .redirects()
+                .follow(false)
+                .`when`()
+                .get("/")
+
+        assertThat(response.statusCode).isNotIn(401, 403)
+        assertThat(response.header("Location").orEmpty()).doesNotContain("auth.jorisjonkers.test/login")
     }
 
     @Test
     fun `grafana authenticated passes forward-auth`() {
-        val session = obtainSession()
-        traefikRequest()
-            .baseUri(grafanaUrl)
-            .cookie("SESSION", session.sessionCookie)
-            .redirects()
-            .follow(false)
-            .`when`()
-            .get("/")
-            .then()
-            .header("Location", not(containsString("auth.jorisjonkers.test/login")))
+        val session = obtainAdminSession()
+        val response =
+            traefikRequest()
+                .baseUri(grafanaUrl)
+                .cookie("SESSION", session.sessionCookie)
+                .redirects()
+                .follow(false)
+                .`when`()
+                .get("/")
+
+        assertThat(response.statusCode).isNotIn(401, 403)
+        assertThat(response.header("Location").orEmpty()).doesNotContain("auth.jorisjonkers.test/login")
     }
 
     @Test
     fun `stalwart authenticated passes forward-auth`() {
-        val session = obtainSession()
-        traefikRequest()
-            .baseUri(stalwartUrl)
-            .cookie("SESSION", session.sessionCookie)
-            .redirects()
-            .follow(false)
-            .`when`()
-            .get("/")
-            .then()
-            .header("Location", not(containsString("auth.jorisjonkers.test/login")))
+        val session = obtainAdminSession()
+        val response =
+            traefikRequest()
+                .baseUri(stalwartUrl)
+                .cookie("SESSION", session.sessionCookie)
+                .redirects()
+                .follow(false)
+                .`when`()
+                .get("/")
+
+        assertThat(response.statusCode).isNotIn(401, 403)
+        assertThat(response.header("Location").orEmpty()).doesNotContain("auth.jorisjonkers.test/login")
     }
+
 }

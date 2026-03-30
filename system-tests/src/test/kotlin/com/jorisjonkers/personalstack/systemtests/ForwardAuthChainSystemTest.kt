@@ -36,6 +36,8 @@ class ForwardAuthChainSystemTest {
         fun protectedServices(): Stream<Arguments> =
             Stream.of(
                 Arguments.of("vault", "https://vault.jorisjonkers.test", "/"),
+                Arguments.of("rabbitmq", "https://rabbitmq.jorisjonkers.test", "/"),
+                Arguments.of("mail", "https://mail.jorisjonkers.test", "/"),
                 Arguments.of("n8n", "https://n8n.jorisjonkers.test", "/"),
                 Arguments.of("grafana", "https://grafana.jorisjonkers.test", "/d/dashboard"),
                 Arguments.of("traefik", "https://traefik.jorisjonkers.test", "/dashboard/"),
@@ -46,6 +48,8 @@ class ForwardAuthChainSystemTest {
         fun allServiceHosts(): Stream<Arguments> =
             Stream.of(
                 Arguments.of("vault", "https://vault.jorisjonkers.test"),
+                Arguments.of("rabbitmq", "https://rabbitmq.jorisjonkers.test"),
+                Arguments.of("mail", "https://mail.jorisjonkers.test"),
                 Arguments.of("n8n", "https://n8n.jorisjonkers.test"),
                 Arguments.of("grafana", "https://grafana.jorisjonkers.test"),
                 Arguments.of("traefik", "https://traefik.jorisjonkers.test"),
