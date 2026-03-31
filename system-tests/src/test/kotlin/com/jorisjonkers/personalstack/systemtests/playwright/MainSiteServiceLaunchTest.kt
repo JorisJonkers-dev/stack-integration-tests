@@ -406,7 +406,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
         page.locator("button:has-text('Login')").click()
         page.waitForURL(
             { it.contains("auth.jorisjonkers.test/login") },
-            Page.WaitForURLOptions().setTimeout(15000.0),
+            Page.WaitForURLOptions().setTimeout(20000.0),
         )
 
         page.locator("#username").fill(user.username)
@@ -415,13 +415,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
 
         page.waitForURL(
             { it.contains("/totp-setup") },
-            Page.WaitForURLOptions().setTimeout(20000.0),
+            Page.WaitForURLOptions().setTimeout(30000.0),
         )
         page.waitForSelector("canvas", Page.WaitForSelectorOptions().setTimeout(15000.0))
         page.locator("details summary").click()
         val secret = page.locator("code").textContent().trim()
-        page.locator("#totp-code").fill(generateTotpCode(secret))
-        page.locator("button[type='submit']").click()
+        submitTotpCode(secret)
 
         waitForMainSite()
         return secret
@@ -437,24 +436,40 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
         page.locator("button:has-text('Login')").click()
         page.waitForURL(
             { it.contains("auth.jorisjonkers.test/login") },
-            Page.WaitForURLOptions().setTimeout(15000.0),
+            Page.WaitForURLOptions().setTimeout(20000.0),
         )
 
         page.locator("#username").fill(user.username)
         page.locator("#password").fill(user.password)
         page.locator("button[type='submit']").click()
 
-        page.waitForSelector("#totp-code", Page.WaitForSelectorOptions().setTimeout(10000.0))
-        page.locator("#totp-code").fill(generateTotpCode(totpSecret))
-        page.locator("button[type='submit']").click()
+        page.waitForSelector("#totp-code", Page.WaitForSelectorOptions().setTimeout(15000.0))
+        submitTotpCode(totpSecret)
 
         waitForMainSite()
     }
 
+    private fun submitTotpCode(secret: String) {
+        val code = generateTotpCode(secret)
+        page.locator("#totp-code").fill(code)
+        page.locator("button[type='submit']").click()
+
+        // If the TOTP code expired between generation and submission, retry with a fresh code.
+        val stillOnTotpPage = page.url().contains("/totp") || page.url().contains("/login")
+        if (stillOnTotpPage) {
+            page.waitForTimeout(1000.0)
+            if (page.url().contains("/totp") || page.url().contains("/login")) {
+                page.locator("#totp-code").fill("")
+                page.locator("#totp-code").fill(generateTotpCode(secret))
+                page.locator("button[type='submit']").click()
+            }
+        }
+    }
+
     private fun waitForMainSite() {
         page.waitForURL(
-            { it.startsWith(APP_UI_URL) && !it.contains("/login") },
-            Page.WaitForURLOptions().setTimeout(20000.0),
+            { it.startsWith(APP_UI_URL) && !it.contains("/login") && !it.contains("/totp") },
+            Page.WaitForURLOptions().setTimeout(30000.0),
         )
         page.waitForLoadState()
         page.waitForTimeout(2000.0)

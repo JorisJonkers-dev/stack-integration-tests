@@ -28,6 +28,7 @@ class DownstreamOidcAuthorizationSystemTest {
                     "openid profile email rabbitmq.tag:administrator",
                     true,
                 ),
+                Arguments.of("stalwart", "https://stalwart.jorisjonkers.test", "openid profile email", false),
             )
     }
 
