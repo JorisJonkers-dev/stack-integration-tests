@@ -29,7 +29,7 @@ class RegistrationFlowSystemTest {
         given()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","password":"$password"}""")
+            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"$password"}""")
             .`when`()
             .post("/api/v1/users/register")
             .then()
@@ -72,8 +72,8 @@ class RegistrationFlowSystemTest {
     @Test
     fun `registration with duplicate username returns 400`() {
         val username = "dup_user_${UUID.randomUUID().toString().take(8)}"
-        val body1 = """{"username":"$username","email":"$username@test.com","password":"Test1234!"}"""
-        val body2 = """{"username":"$username","email":"${username}_2@test.com","password":"Test1234!"}"""
+        val body1 = """{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}"""
+        val body2 = """{"username":"$username","email":"${username}_2@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}"""
 
         given()
             .baseUri(authBaseUrl)
@@ -99,10 +99,10 @@ class RegistrationFlowSystemTest {
         val email = "dup_email_${UUID.randomUUID().toString().take(8)}@test.com"
         val body1 = """{"username":"dup_e1_${UUID.randomUUID().toString().take(
             8,
-        )}","email":"$email","password":"Test1234!"}"""
+        )}","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}"""
         val body2 = """{"username":"dup_e2_${UUID.randomUUID().toString().take(
             8,
-        )}","email":"$email","password":"Test1234!"}"""
+        )}","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}"""
 
         given()
             .baseUri(authBaseUrl)
@@ -130,7 +130,7 @@ class RegistrationFlowSystemTest {
         given()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$username@test.com","password":"Test1234!"}""")
+            .body("""{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}""")
             .`when`()
             .post("/api/v1/users/register")
             .then()
@@ -154,7 +154,7 @@ class RegistrationFlowSystemTest {
         given()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","password":"Test1234!"}""")
+            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}""")
             .`when`()
             .post("/api/v1/users/register")
             .then()

@@ -47,7 +47,7 @@ class AuthLoginFlowTest : PlaywrightTestBase() {
             .given()
             .baseUri(System.getProperty("test.auth-api.url", "http://localhost:8081"))
             .contentType(io.restassured.http.ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","password":"Test1234!"}""")
+            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}""")
             .post("/api/v1/users/register")
             .then()
             .statusCode(201)

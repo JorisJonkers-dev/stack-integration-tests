@@ -7,6 +7,17 @@ import org.junit.jupiter.api.Test
 
 @Tag("system")
 class LogoutFlowTest : PlaywrightTestBase() {
+    private fun logoutFromAppUi(username: String) {
+        page.locator("button:has-text('$username')").first().click()
+        assertThat(page.locator("button:has-text('Logout')").first()).isVisible()
+        page.locator("button:has-text('Logout')").first().click()
+        page.waitForURL(
+            { it.startsWith(APP_UI_URL) },
+            Page.WaitForURLOptions().setTimeout(10000.0),
+        )
+        page.waitForLoadState()
+    }
+
     @Test
     fun `logout from app-ui clears session`() {
         val user = registerAndConfirm()
@@ -19,9 +30,7 @@ class LogoutFlowTest : PlaywrightTestBase() {
         // Verify logged in
         assertThat(page.locator("body")).containsText(user.username)
 
-        // Click username/logout button
-        page.locator("button:has-text('${user.username}'), a:has-text('${user.username}')").first().click()
-        page.waitForTimeout(3000.0)
+        logoutFromAppUi(user.username)
 
         // Navigate back and verify logged out
         page.navigate(APP_UI_URL)
@@ -40,9 +49,7 @@ class LogoutFlowTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
-        // Logout
-        page.locator("button:has-text('${user.username}'), a:has-text('${user.username}')").first().click()
-        page.waitForTimeout(3000.0)
+        logoutFromAppUi(user.username)
         page.navigate(APP_UI_URL)
         page.waitForLoadState()
         page.waitForTimeout(2000.0)

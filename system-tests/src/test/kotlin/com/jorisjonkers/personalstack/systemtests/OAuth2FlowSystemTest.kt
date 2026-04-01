@@ -195,7 +195,7 @@ class OAuth2FlowSystemTest {
         given()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$username@test.com","password":"Test1234!"}""")
+            .body("""{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}""")
             .`when`()
             .post("/api/v1/users/register")
             .then()
