@@ -11,7 +11,6 @@ import com.microsoft.playwright.options.SameSiteAttribute
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
-import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import org.apache.commons.codec.binary.Base32
 import org.junit.jupiter.api.AfterAll
@@ -116,10 +115,10 @@ abstract class PlaywrightTestBase {
 
     protected fun enrollTotpViaApi(user: TestHelper.RegisteredUser): String {
         val session = TestHelper.sessionLogin(user)
-        val authApiUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+        val authApiUrl = TestHelper.authBaseUrl
 
         val secret =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authApiUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .cookie("XSRF-TOKEN", session.csrfToken)
@@ -131,7 +130,7 @@ abstract class PlaywrightTestBase {
                 .jsonPath()
                 .getString("secret")
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authApiUrl)
             .contentType(ContentType.JSON)
             .cookie("SESSION", session.sessionCookie)

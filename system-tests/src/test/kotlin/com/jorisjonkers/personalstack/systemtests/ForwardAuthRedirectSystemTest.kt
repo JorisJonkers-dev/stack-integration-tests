@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -11,11 +10,11 @@ import org.junit.jupiter.api.Test
  */
 @Tag("system")
 class ForwardAuthRedirectSystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private val authBaseUrl = TestHelper.authBaseUrl
 
     @Test
     fun `verify endpoint returns 302 redirect to login when unauthenticated`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .redirects()
             .follow(false)
@@ -28,7 +27,7 @@ class ForwardAuthRedirectSystemTest {
 
     @Test
     fun `verify endpoint includes original URL from forwarded headers in redirect`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .redirects()
             .follow(false)
@@ -46,7 +45,7 @@ class ForwardAuthRedirectSystemTest {
     fun `verify endpoint does not redirect with valid session`() {
         val session = TestHelper.registerConfirmAndGetSession()
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", session.sessionCookie)
             .`when`()

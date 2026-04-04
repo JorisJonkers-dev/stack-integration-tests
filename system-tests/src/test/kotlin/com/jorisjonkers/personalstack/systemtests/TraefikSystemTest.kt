@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Tag
@@ -15,7 +14,7 @@ import org.junit.jupiter.api.Test
  */
 @Tag("system")
 class TraefikSystemTest {
-    private fun traefikRequest() = given().relaxedHTTPSValidation()
+    private fun traefikRequest() = TestHelper.givenApi()
 
     // UI services
     private val appUiUrl = "https://jorisjonkers.test"

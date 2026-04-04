@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -14,8 +13,7 @@ class N8nOidcSystemTest {
         val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         val response =
-            given()
-                .relaxedHTTPSValidation()
+            TestHelper.givenApi()
                 .baseUri("https://n8n.jorisjonkers.test")
                 .cookie("SESSION", adminSession.sessionCookie)
                 .redirects()

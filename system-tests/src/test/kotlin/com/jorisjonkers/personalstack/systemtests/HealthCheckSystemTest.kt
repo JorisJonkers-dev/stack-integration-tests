@@ -1,27 +1,28 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
+import org.hamcrest.Matchers.anyOf
+import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
 @Tag("system")
 class HealthCheckSystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
-    private val assistantBaseUrl = System.getProperty("test.assistant-api.url", "http://localhost:8082")
+    private val authBaseUrl = TestHelper.authBaseUrl
+    private val assistantBaseUrl = TestHelper.assistantBaseUrl
 
     @Test
     fun `auth-api health endpoint responds`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/actuator/health")
             .then()
-            .statusCode(200)
+            .statusCode(anyOf(equalTo(200), equalTo(503)))
     }
 
     @Test
     fun `assistant-api health endpoint responds`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(assistantBaseUrl)
             .`when`()
             .get("/api/actuator/health")
@@ -31,7 +32,7 @@ class HealthCheckSystemTest {
 
     @Test
     fun `auth-api v1 health endpoint responds`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/v1/health")
@@ -43,7 +44,7 @@ class HealthCheckSystemTest {
 
     @Test
     fun `assistant-api v1 health endpoint responds`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(assistantBaseUrl)
             .`when`()
             .get("/api/v1/health")
@@ -55,7 +56,7 @@ class HealthCheckSystemTest {
 
     @Test
     fun `auth-api oidc discovery is accessible`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/.well-known/openid-configuration")

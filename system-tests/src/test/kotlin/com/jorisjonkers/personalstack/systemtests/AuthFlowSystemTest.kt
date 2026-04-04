@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -14,7 +13,7 @@ import java.util.UUID
 @Tag("system")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthFlowSystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private val authBaseUrl = TestHelper.authBaseUrl
 
     @Test
     fun `register confirm and login successfully`() {
@@ -26,7 +25,7 @@ class AuthFlowSystemTest {
 
         // Verify session-based access to protected endpoints
         val session = TestHelper.sessionLoginAndGetCookie(user)
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", session)
             .`when`()
@@ -39,7 +38,7 @@ class AuthFlowSystemTest {
     fun `login without email confirmation returns 400`() {
         val username = "unconf_${UUID.randomUUID().toString().take(8)}"
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}""")
@@ -48,7 +47,7 @@ class AuthFlowSystemTest {
             .then()
             .statusCode(201)
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","password":"Test1234!"}""")
@@ -63,7 +62,7 @@ class AuthFlowSystemTest {
         val user = TestHelper.registerAndConfirm()
 
         val loginJson =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -77,7 +76,7 @@ class AuthFlowSystemTest {
         val refreshToken = loginJson.getString("refreshToken")
         assertThat(refreshToken).isNotBlank()
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"refreshToken":"$refreshToken"}""")
@@ -92,7 +91,7 @@ class AuthFlowSystemTest {
         val user = "duptest_${UUID.randomUUID().toString().take(8)}"
         val body = """{"username":"$user","email":"$user@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}"""
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body(body)
@@ -101,7 +100,7 @@ class AuthFlowSystemTest {
             .then()
             .statusCode(201)
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body(body)
@@ -113,7 +112,7 @@ class AuthFlowSystemTest {
 
     @Test
     fun `verify endpoint redirects to login without token`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .redirects()
             .follow(false)
@@ -126,7 +125,7 @@ class AuthFlowSystemTest {
 
     @Test
     fun `other protected endpoints reject request without token`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/v1/users/me")

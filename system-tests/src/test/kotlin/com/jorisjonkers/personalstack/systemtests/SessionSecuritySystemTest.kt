@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -16,7 +15,7 @@ import org.junit.jupiter.api.TestInstance
 @Tag("system")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SessionSecuritySystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private val authBaseUrl = TestHelper.authBaseUrl
     private val appUiUrl = System.getProperty("test.app-ui.url", "https://jorisjonkers.test")
 
     @Test
@@ -24,7 +23,7 @@ class SessionSecuritySystemTest {
         val user = TestHelper.registerAndConfirm()
 
         val response =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -47,7 +46,7 @@ class SessionSecuritySystemTest {
         val user = TestHelper.registerAndConfirm()
 
         val response =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -67,7 +66,7 @@ class SessionSecuritySystemTest {
 
     @Test
     fun `session login without credentials returns 400`() {
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{}""")
@@ -80,7 +79,7 @@ class SessionSecuritySystemTest {
     @Test
     fun `session is not created on failed login`() {
         val response =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"nonexistent_user","password":"WrongPass1!"}""")
@@ -98,7 +97,7 @@ class SessionSecuritySystemTest {
     @Test
     fun `CORS preflight for session-login returns correct headers`() {
         val response =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .header("Origin", appUiUrl)
                 .header("Access-Control-Request-Method", "POST")

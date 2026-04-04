@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import io.restassured.filter.cookie.CookieFilter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -16,8 +15,7 @@ class GrafanaOidcSystemTest {
         val cookies = CookieFilter()
 
         val oauthRedirect =
-            given()
-                .relaxedHTTPSValidation()
+            TestHelper.givenApi()
                 .filter(cookies)
                 .baseUri("https://grafana.jorisjonkers.test")
                 .cookie("SESSION", adminSession.sessionCookie)

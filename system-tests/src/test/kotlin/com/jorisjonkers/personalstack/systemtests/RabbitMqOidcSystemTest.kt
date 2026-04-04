@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -13,8 +12,7 @@ class RabbitMqOidcSystemTest {
     fun `rabbitmq management serves the ui once the service session is established`() {
         val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
-        given()
-            .relaxedHTTPSValidation()
+        TestHelper.givenApi()
             .baseUri("https://rabbitmq.jorisjonkers.test")
             .cookie("SESSION", adminSession.sessionCookie)
             .`when`()

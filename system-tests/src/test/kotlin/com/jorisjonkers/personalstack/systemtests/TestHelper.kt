@@ -5,6 +5,7 @@ import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
+import io.restassured.specification.RequestSpecification
 import org.apache.commons.codec.binary.Base32
 import org.assertj.core.api.Assertions.assertThat
 import java.sql.DriverManager
@@ -23,7 +24,10 @@ object TestHelper {
     private const val TOTP_STEP_SECONDS = 30L
     private const val TOTP_MIN_VALIDITY_SECONDS = 5L
 
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    val authBaseUrl = System.getProperty("test.auth-api.url", "https://auth.jorisjonkers.test")
+    val assistantBaseUrl = System.getProperty("test.assistant-api.url", "https://assistant.jorisjonkers.test")
+
+    fun givenApi(): RequestSpecification = given().relaxedHTTPSValidation()
     private val dbUrl = System.getProperty("test.db.url", "jdbc:postgresql://localhost:5432/auth_db")
     private val dbUser = System.getProperty("test.db.user", "auth_user")
     private val dbPassword = System.getProperty("test.db.password", "auth_password")
@@ -34,7 +38,7 @@ object TestHelper {
     ): RegisteredUser {
         val email = "$username@systemtest.example.com"
 
-        given()
+        givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"$password"}""")
@@ -45,7 +49,7 @@ object TestHelper {
 
         val token = getConfirmationTokenFromDb(username)
 
-        given()
+        givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/v1/auth/confirm-email?token=$token")
@@ -56,7 +60,7 @@ object TestHelper {
     }
 
     fun loginAndGetToken(user: RegisteredUser): String =
-        given()
+        givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"${user.username}","password":"${user.password}"}""")

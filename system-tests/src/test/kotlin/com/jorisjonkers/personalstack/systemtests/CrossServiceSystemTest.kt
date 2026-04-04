@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -8,26 +7,30 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 /**
- * System test: register -> login -> verify -> create conversation via assistant-api.
- * Validates the full cross-service flow (auth-api -> assistant-api).
+ * System test: register -> login -> verify -> create conversation through Traefik.
+ * Validates the full auth-api -> Traefik forward-auth -> assistant-api flow.
  *
- * Without Traefik in the loop, the test simulates the forward-auth flow:
- * it calls /api/v1/auth/verify to get X-User-Id, then passes it to assistant-api.
+ * The assistant API is protected by Traefik forward-auth, so the assistant calls
+ * must carry the authenticated session cookie and let Traefik inject X-User-Id.
  */
 @Tag("system")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CrossServiceSystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
-    private val assistantBaseUrl = System.getProperty("test.assistant-api.url", "http://localhost:8082")
+    private val authBaseUrl = TestHelper.authBaseUrl
+    private val assistantBaseUrl = TestHelper.assistantBaseUrl
 
-    private fun registerAndAuthenticate(): String {
-        val session = TestHelper.registerConfirmAndGetSession()
-        return verifyAndGetUserId(session.sessionCookie)
+    private fun registerAndAuthenticate(): AuthenticatedSession {
+        val username = "cross_${java.util.UUID.randomUUID().toString().take(8)}"
+        val user = TestHelper.registerAndConfirm(username)
+        TestHelper.grantServicePermission(username, "ASSISTANT")
+        val session = TestHelper.sessionLogin(user)
+        val userId = verifyAndGetUserId(session.sessionCookie)
+        return AuthenticatedSession(session.sessionCookie, userId)
     }
 
     private fun verifyAndGetUserId(sessionCookie: String): String {
         val userId =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", sessionCookie)
                 .`when`()
@@ -42,19 +45,20 @@ class CrossServiceSystemTest {
 
     @Test
     fun `full flow register login create conversation`() {
-        val userId = registerAndAuthenticate()
-        val conversationId = createConversation(userId)
-        sendMessage(userId, conversationId)
-        val messages = getMessages(userId, conversationId)
+        val session = registerAndAuthenticate()
+        val conversationId = createConversation(session.sessionCookie)
+        sendMessage(session.sessionCookie, conversationId)
+        val messages = getMessages(session.sessionCookie, conversationId)
         assertThat(messages).isNotEmpty()
+        assertThat(session.userId).isNotBlank()
     }
 
-    private fun createConversation(userId: String): String {
+    private fun createConversation(sessionCookie: String): String {
         val conversationId =
-            given()
+            TestHelper.givenApi()
                 .baseUri(assistantBaseUrl)
+                .cookie("SESSION", sessionCookie)
                 .contentType(ContentType.JSON)
-                .header("X-User-Id", userId)
                 .body("""{"title":"My first conversation"}""")
                 .`when`()
                 .post("/api/v1/conversations")
@@ -68,13 +72,13 @@ class CrossServiceSystemTest {
     }
 
     private fun sendMessage(
-        userId: String,
+        sessionCookie: String,
         conversationId: String,
     ) {
-        given()
+        TestHelper.givenApi()
             .baseUri(assistantBaseUrl)
+            .cookie("SESSION", sessionCookie)
             .contentType(ContentType.JSON)
-            .header("X-User-Id", userId)
             .body("""{"content":"Hello from system test","role":"USER"}""")
             .`when`()
             .post("/api/v1/conversations/$conversationId/messages")
@@ -83,12 +87,12 @@ class CrossServiceSystemTest {
     }
 
     private fun getMessages(
-        userId: String,
+        sessionCookie: String,
         conversationId: String,
     ): List<Map<String, Any>> =
-        given()
+        TestHelper.givenApi()
             .baseUri(assistantBaseUrl)
-            .header("X-User-Id", userId)
+            .cookie("SESSION", sessionCookie)
             .`when`()
             .get("/api/v1/conversations/$conversationId/messages")
             .then()
@@ -96,4 +100,9 @@ class CrossServiceSystemTest {
             .extract()
             .jsonPath()
             .getList("")
+
+    private data class AuthenticatedSession(
+        val sessionCookie: String,
+        val userId: String,
+    )
 }

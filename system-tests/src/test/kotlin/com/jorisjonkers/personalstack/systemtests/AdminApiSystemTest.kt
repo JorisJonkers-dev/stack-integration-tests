@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -17,14 +16,14 @@ import java.util.UUID
 @Tag("system")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AdminApiSystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private val authBaseUrl = TestHelper.authBaseUrl
 
     @Test
     fun `admin can list all users`() {
         val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         val users =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -42,7 +41,7 @@ class AdminApiSystemTest {
     fun `non-admin user is rejected from admin endpoints`() {
         val userSession = TestHelper.registerConfirmAndGetSession()
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", userSession.sessionCookie)
             .`when`()
@@ -57,7 +56,7 @@ class AdminApiSystemTest {
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -70,7 +69,7 @@ class AdminApiSystemTest {
 
         val targetId = users.first { it["username"] == targetUser.username }["id"] as String
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", adminSession.sessionCookie)
             .cookie("XSRF-TOKEN", adminSession.csrfToken)
@@ -83,7 +82,7 @@ class AdminApiSystemTest {
             .statusCode(200)
 
         val updated =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -95,7 +94,7 @@ class AdminApiSystemTest {
 
         assertThat(updated.getString("role")).isEqualTo("READONLY")
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", adminSession.sessionCookie)
             .cookie("XSRF-TOKEN", adminSession.csrfToken)
@@ -108,7 +107,7 @@ class AdminApiSystemTest {
             .statusCode(200)
 
         val withPerms =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -128,7 +127,7 @@ class AdminApiSystemTest {
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -141,7 +140,7 @@ class AdminApiSystemTest {
 
         val targetId = users.first { it["username"] == targetUser.username }["id"] as String
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", adminSession.sessionCookie)
             .cookie("XSRF-TOKEN", adminSession.csrfToken)
@@ -151,7 +150,7 @@ class AdminApiSystemTest {
             .then()
             .statusCode(204)
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", adminSession.sessionCookie)
             .`when`()
@@ -169,7 +168,7 @@ class AdminApiSystemTest {
         TestHelper.registerAndConfirm()
 
         val users =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -196,7 +195,7 @@ class AdminApiSystemTest {
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -210,7 +209,7 @@ class AdminApiSystemTest {
         val targetId = users.first { it["username"] == targetUser.username }["id"] as String
 
         // Set service permissions
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", adminSession.sessionCookie)
             .cookie("XSRF-TOKEN", adminSession.csrfToken)
@@ -223,7 +222,7 @@ class AdminApiSystemTest {
             .statusCode(200)
 
         val perms =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -237,7 +236,7 @@ class AdminApiSystemTest {
         assertThat(perms).containsExactlyInAnyOrder("GRAFANA", "N8N")
 
         // Update to a different set
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", adminSession.sessionCookie)
             .cookie("XSRF-TOKEN", adminSession.csrfToken)
@@ -250,7 +249,7 @@ class AdminApiSystemTest {
             .statusCode(200)
 
         val updatedPerms =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -269,7 +268,7 @@ class AdminApiSystemTest {
         val userSession = TestHelper.registerConfirmAndGetSession()
 
         // GET /admin/users
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", userSession.sessionCookie)
             .`when`()
@@ -279,7 +278,7 @@ class AdminApiSystemTest {
 
         // Attempt to change a role (use a fake UUID)
         val fakeId = UUID.randomUUID().toString()
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", userSession.sessionCookie)
             .cookie("XSRF-TOKEN", userSession.csrfToken)
@@ -292,7 +291,7 @@ class AdminApiSystemTest {
             .statusCode(403)
 
         // Attempt to update service permissions
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", userSession.sessionCookie)
             .cookie("XSRF-TOKEN", userSession.csrfToken)
@@ -311,7 +310,7 @@ class AdminApiSystemTest {
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -325,7 +324,7 @@ class AdminApiSystemTest {
         val targetId = users.first { it["username"] == targetUser.username }["id"] as String
 
         // Change role to READONLY
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", adminSession.sessionCookie)
             .cookie("XSRF-TOKEN", adminSession.csrfToken)
@@ -352,7 +351,7 @@ class AdminApiSystemTest {
         val targetUser = TestHelper.registerAndConfirm()
 
         val users =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", adminSession.sessionCookie)
                 .`when`()
@@ -366,7 +365,7 @@ class AdminApiSystemTest {
         val targetId = users.first { it["username"] == targetUser.username }["id"] as String
 
         // Grant GRAFANA permission
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", adminSession.sessionCookie)
             .cookie("XSRF-TOKEN", adminSession.csrfToken)

@@ -1,7 +1,9 @@
 package com.jorisjonkers.personalstack.systemtests.playwright
 
+import com.jorisjonkers.personalstack.systemtests.TestHelper
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import io.restassured.http.ContentType
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
@@ -43,10 +45,9 @@ class AuthLoginFlowTest : PlaywrightTestBase() {
         val username = uniqueUsername("unconf")
         val email = "$username@systemtest.example.com"
 
-        io.restassured.RestAssured
-            .given()
-            .baseUri(System.getProperty("test.auth-api.url", "http://localhost:8081"))
-            .contentType(io.restassured.http.ContentType.JSON)
+        TestHelper.givenApi()
+            .baseUri(TestHelper.authBaseUrl)
+            .contentType(ContentType.JSON)
             .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}""")
             .post("/api/v1/users/register")
             .then()

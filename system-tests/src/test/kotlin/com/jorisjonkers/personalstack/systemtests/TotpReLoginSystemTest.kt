@@ -3,7 +3,6 @@ package com.jorisjonkers.personalstack.systemtests
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
 import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
-import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import org.apache.commons.codec.binary.Base32
 import org.assertj.core.api.Assertions.assertThat
@@ -21,7 +20,7 @@ import java.util.concurrent.TimeUnit
 @Tag("system")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TotpReLoginSystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private val authBaseUrl = TestHelper.authBaseUrl
 
     private fun generateTotpCode(secret: String): String {
         val padded = secret.padEnd((secret.length + 7) / 8 * 8, '=')
@@ -40,7 +39,7 @@ class TotpReLoginSystemTest {
         TestHelper.registerAndConfirm(username = username, password = "ReLogin1!")
 
     private fun login(username: String): io.restassured.path.json.JsonPath =
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","password":"ReLogin1!"}""")
@@ -56,7 +55,7 @@ class TotpReLoginSystemTest {
         secret: String,
     ): io.restassured.path.json.JsonPath {
         val code = generateTotpCode(secret)
-        return given()
+        return TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"totpChallengeToken":"$challengeToken","code":"$code"}""")
@@ -70,7 +69,7 @@ class TotpReLoginSystemTest {
 
     private fun enrollAndVerifyTotp(session: TestHelper.SessionInfo): String {
         val secret =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .cookie("XSRF-TOKEN", session.csrfToken)
@@ -83,7 +82,7 @@ class TotpReLoginSystemTest {
                 .jsonPath()
                 .getString("secret")
 
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .cookie("SESSION", session.sessionCookie)
@@ -124,7 +123,7 @@ class TotpReLoginSystemTest {
 
         // Verify session-based access works for forward-auth
         val totpSessionCookie = TestHelper.sessionLoginAndGetCookie(user, TestHelper.generateFreshTotpCode(secret))
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", totpSessionCookie)
             .`when`()
@@ -143,7 +142,7 @@ class TotpReLoginSystemTest {
         enrollAndVerifyTotp(session)
 
         // Attempt to enroll again with same session — should be rejected
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", session.sessionCookie)
             .cookie("XSRF-TOKEN", session.csrfToken)

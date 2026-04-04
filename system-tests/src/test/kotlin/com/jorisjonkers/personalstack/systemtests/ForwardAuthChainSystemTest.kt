@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -27,9 +26,9 @@ import java.util.stream.Stream
 @Tag("system")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ForwardAuthChainSystemTest {
-    private val authBaseUrl = System.getProperty("test.auth-api.url", "http://localhost:8081")
+    private val authBaseUrl = TestHelper.authBaseUrl
 
-    private fun traefikRequest() = given().relaxedHTTPSValidation()
+    private fun traefikRequest() = TestHelper.givenApi()
 
     companion object {
         @JvmStatic
@@ -141,7 +140,7 @@ class ForwardAuthChainSystemTest {
         val session = TestHelper.registerConfirmAndGetSession()
 
         val userId =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .`when`()
@@ -190,7 +189,7 @@ class ForwardAuthChainSystemTest {
         val codeChallenge = generateCodeChallenge(codeVerifier)
 
         val authorizeResponse =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", sessionCookie)
                 .redirects()
@@ -217,7 +216,7 @@ class ForwardAuthChainSystemTest {
                 .associate { it.split("=", limit = 2).let { kv -> kv[0] to kv[1] } }["code"]
 
         val oauth2Token =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.URLENC)
                 .formParam("grant_type", "authorization_code")
@@ -236,7 +235,7 @@ class ForwardAuthChainSystemTest {
         assertThat(oauth2Token).isNotBlank()
 
         // Forward-auth is session-based, so the original session must still authenticate after the OAuth2 flow.
-        given()
+        TestHelper.givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", sessionCookie)
             .redirects()
@@ -281,7 +280,7 @@ class ForwardAuthChainSystemTest {
         val expiredToken = "$header.$payload.invalid-sig"
 
         val response =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .header("Authorization", "Bearer $expiredToken")
                 .redirects()
@@ -326,7 +325,7 @@ class ForwardAuthChainSystemTest {
     @Test
     fun `forward-auth returns correct redirect URL with original path`() {
         val response =
-            given()
+            TestHelper.givenApi()
                 .baseUri(authBaseUrl)
                 .redirects()
                 .follow(false)
