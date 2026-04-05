@@ -38,6 +38,7 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
         val user = registerAndConfirm()
         TestHelper.grantServicePermission(user.username, "GRAFANA")
         TestHelper.grantServicePermission(user.username, "VAULT")
+        TestHelper.grantServicePermission(user.username, "NOMAD")
         loginViaApi(user)
 
         page.navigate("$APP_UI_URL/apps")
@@ -46,6 +47,7 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
 
         assertThat(page.locator("body")).containsText("Grafana")
         assertThat(page.locator("body")).containsText("Vault")
+        assertThat(page.locator("body")).containsText("Nomad")
     }
 
     @Test
@@ -71,10 +73,12 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
         val mailCard = page.locator("a[href='https://stalwart.jorisjonkers.test/']")
         val vaultCard = page.locator("a[href='https://vault.jorisjonkers.test/']")
         val n8nCard = page.locator("a[href='https://n8n.jorisjonkers.test/']")
+        val nomadCard = page.locator("a[href='https://nomad.jorisjonkers.test/']")
 
         assertThat(mailCard).isVisible()
         assertThat(vaultCard).isVisible()
         assertThat(n8nCard).isVisible()
+        assertThat(nomadCard).isVisible()
         assertThat(n8nCard.locator("img")).isVisible()
 
         val mailUsesFallback = mailCard.locator("span").count() > 0
