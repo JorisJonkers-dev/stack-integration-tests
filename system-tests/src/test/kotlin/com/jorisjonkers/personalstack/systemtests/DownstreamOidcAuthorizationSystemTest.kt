@@ -25,7 +25,7 @@ class DownstreamOidcAuthorizationSystemTest {
                 Arguments.of(
                     "rabbitmq",
                     "https://rabbitmq.jorisjonkers.test/js/oidc-oauth/login-callback.html",
-                    "openid profile email rabbitmq.tag:administrator",
+                    "openid profile email",
                     true,
                 ),
             )

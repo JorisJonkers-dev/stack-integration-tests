@@ -132,6 +132,17 @@ object TestHelper {
         return SessionUser(user, session.sessionCookie, session.csrfToken)
     }
 
+    fun registerConfirmGrantAndGetSession(
+        service: String,
+        username: String = "svc_${UUID.randomUUID().toString().take(8)}",
+        password: String = "Test1234!",
+    ): SessionUser {
+        val user = registerAndConfirm(username, password)
+        grantServicePermission(user.username, service)
+        val session = sessionLogin(user)
+        return SessionUser(user, session.sessionCookie, session.csrfToken)
+    }
+
     fun registerConfirmAndGetAdminSession(
         username: String = "adm_${UUID.randomUUID().toString().take(8)}",
         password: String = "Test1234!",
