@@ -57,6 +57,24 @@ class ForwardAuthChainSystemTest {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
     }
 
+    private fun verifyForwardAuthForHost(
+        host: String,
+        sessionCookie: String? = null,
+        uri: String = "/",
+    ) = TestHelper.givenApi()
+        .baseUri(authBaseUrl)
+        .redirects()
+        .follow(false)
+        .apply {
+            header("X-Forwarded-Proto", "https")
+            header("X-Forwarded-Host", host)
+            header("X-Forwarded-Uri", uri)
+            if (sessionCookie != null) {
+                cookie("SESSION", sessionCookie)
+            }
+        }.`when`()
+        .get("/api/v1/auth/verify")
+
     @ParameterizedTest(name = "{0}: unauthenticated request redirects to login with redirect URL")
     @MethodSource("forwardAuthServices")
     fun `unauthenticated request redirects to login with service redirect URL`(
@@ -174,6 +192,56 @@ class ForwardAuthChainSystemTest {
             .describedAs("USER with MAIL permission should pass mail forward-auth")
             .isNotEqualTo(403)
         assertThat(response.statusCode).isNotEqualTo(401)
+    }
+
+    @Test
+    fun `nomad unauthenticated verify redirects to login with original URL`() {
+        val response = verifyForwardAuthForHost("nomad.jorisjonkers.test")
+
+        assertThat(response.statusCode).isEqualTo(302)
+        assertThat(response.header("Location"))
+            .contains("login")
+            .contains("redirect=")
+            .containsIgnoringCase("nomad.jorisjonkers.test")
+    }
+
+    @Test
+    fun `nomad verify denies user without service permission`() {
+        val session = TestHelper.registerConfirmAndGetSession()
+
+        val response =
+            verifyForwardAuthForHost(
+                host = "nomad.jorisjonkers.test",
+                sessionCookie = session.sessionCookie,
+            )
+
+        assertThat(response.statusCode).isEqualTo(403)
+    }
+
+    @Test
+    fun `nomad verify allows admin session`() {
+        val session = TestHelper.registerConfirmAndGetAdminSession()
+
+        val response =
+            verifyForwardAuthForHost(
+                host = "nomad.jorisjonkers.test",
+                sessionCookie = session.sessionCookie,
+            )
+
+        assertThat(response.statusCode).isEqualTo(200)
+    }
+
+    @Test
+    fun `nomad verify allows user with SERVICE_NOMAD`() {
+        val session = TestHelper.registerConfirmGrantAndGetSession("NOMAD")
+
+        val response =
+            verifyForwardAuthForHost(
+                host = "nomad.jorisjonkers.test",
+                sessionCookie = session.sessionCookie,
+            )
+
+        assertThat(response.statusCode).isEqualTo(200)
     }
 
     @Test
@@ -347,5 +415,20 @@ class ForwardAuthChainSystemTest {
         assertThat(location)
             .describedAs("Redirect should encode the original URL including the path")
             .contains("some-dashboard")
+    }
+
+    @Test
+    fun `nomad forward-auth redirect preserves original path`() {
+        val response =
+            verifyForwardAuthForHost(
+                host = "nomad.jorisjonkers.test",
+                uri = "/ui/jobs",
+            )
+
+        assertThat(response.statusCode).isEqualTo(302)
+        assertThat(response.header("Location"))
+            .contains("redirect=")
+            .contains("nomad.jorisjonkers.test")
+            .contains("ui%2Fjobs")
     }
 }
