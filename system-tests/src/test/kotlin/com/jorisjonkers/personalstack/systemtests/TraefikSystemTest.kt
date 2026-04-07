@@ -23,11 +23,11 @@ class TraefikSystemTest {
 
     // Native OIDC services
     private val vaultUrl = "https://vault.jorisjonkers.test"
-    private val rabbitMqUrl = "https://rabbitmq.jorisjonkers.test"
     private val n8nUrl = "https://n8n.jorisjonkers.test"
     private val grafanaUrl = "https://grafana.jorisjonkers.test"
 
     // Forward-auth protected services
+    private val rabbitMqUrl = "https://rabbitmq.jorisjonkers.test"
     private val mailUrl = "https://stalwart.jorisjonkers.test"
     private val stalwartUrl = "https://stalwart.jorisjonkers.test"
 
@@ -82,10 +82,25 @@ class TraefikSystemTest {
     }
 
     @Test
-    fun `rabbitmq unauthenticated does not redirect to auth login`() {
+    fun `rabbitmq unauthenticated redirects to auth login`() {
+        traefikRequest()
+            .baseUri(rabbitMqUrl)
+            .redirects()
+            .follow(false)
+            .`when`()
+            .get("/")
+            .then()
+            .statusCode(302)
+            .header("Location", containsString("auth.jorisjonkers.test/login"))
+    }
+
+    @Test
+    fun `rabbitmq authenticated passes forward-auth`() {
+        val session = obtainAdminSession()
         val response =
             traefikRequest()
                 .baseUri(rabbitMqUrl)
+                .cookie("SESSION", session.sessionCookie)
                 .redirects()
                 .follow(false)
                 .`when`()

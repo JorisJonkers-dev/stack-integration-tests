@@ -104,7 +104,7 @@ object TestHelper {
             }
 
         val response =
-            given()
+            givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body(body)

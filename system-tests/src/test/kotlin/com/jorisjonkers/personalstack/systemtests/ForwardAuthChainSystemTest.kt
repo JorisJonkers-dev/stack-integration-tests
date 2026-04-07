@@ -36,6 +36,7 @@ class ForwardAuthChainSystemTest {
             Stream.of(
                 Arguments.of("traefik", "https://traefik.jorisjonkers.test", "/dashboard/"),
                 Arguments.of("stalwart", "https://stalwart.jorisjonkers.test", "/"),
+                Arguments.of("rabbitmq", "https://rabbitmq.jorisjonkers.test", "/"),
             )
 
         @JvmStatic
@@ -43,6 +44,7 @@ class ForwardAuthChainSystemTest {
             Stream.of(
                 Arguments.of("traefik", "https://traefik.jorisjonkers.test"),
                 Arguments.of("stalwart", "https://stalwart.jorisjonkers.test"),
+                Arguments.of("rabbitmq", "https://rabbitmq.jorisjonkers.test"),
             )
     }
 
