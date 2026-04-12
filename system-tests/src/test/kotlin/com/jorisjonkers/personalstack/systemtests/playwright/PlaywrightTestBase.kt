@@ -6,6 +6,7 @@ import com.microsoft.playwright.BrowserContext
 import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
+import com.microsoft.playwright.PlaywrightException
 import com.microsoft.playwright.options.Cookie
 import com.microsoft.playwright.options.SameSiteAttribute
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
@@ -66,6 +67,29 @@ abstract class PlaywrightTestBase {
         context.close()
     }
 
+    protected fun navigateWithRetry(
+        url: String,
+        attempts: Int = 3,
+    ) {
+        var lastException: PlaywrightException? = null
+        repeat(attempts) { attempt ->
+            try {
+                page.navigate(url)
+                return
+            } catch (e: PlaywrightException) {
+                if (e.message?.contains("ERR_CONNECTION_REFUSED") == true) {
+                    lastException = e
+                    if (attempt < attempts - 1) {
+                        Thread.sleep(2000L * (attempt + 1))
+                    }
+                } else {
+                    throw e
+                }
+            }
+        }
+        throw lastException!!
+    }
+
     protected fun uniqueUsername(prefix: String = "pw"): String = "${prefix}_${UUID.randomUUID().toString().take(8)}"
 
     protected fun registerAndConfirm(
@@ -118,7 +142,8 @@ abstract class PlaywrightTestBase {
         val authApiUrl = TestHelper.authBaseUrl
 
         val secret =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authApiUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .cookie("XSRF-TOKEN", session.csrfToken)
@@ -130,7 +155,8 @@ abstract class PlaywrightTestBase {
                 .jsonPath()
                 .getString("secret")
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authApiUrl)
             .contentType(ContentType.JSON)
             .cookie("SESSION", session.sessionCookie)

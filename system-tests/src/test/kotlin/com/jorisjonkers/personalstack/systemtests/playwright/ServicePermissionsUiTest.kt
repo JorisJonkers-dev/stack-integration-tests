@@ -2,9 +2,9 @@ package com.jorisjonkers.personalstack.systemtests.playwright
 
 import com.jorisjonkers.personalstack.systemtests.TestHelper
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import org.assertj.core.api.Assertions.assertThat as assertThatValue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.assertj.core.api.Assertions.assertThat as assertThatValue
 
 @Tag("system")
 class ServicePermissionsUiTest : PlaywrightTestBase() {
@@ -104,7 +104,7 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
 
     @Test
     fun `apps grid only visible when authenticated`() {
-        page.navigate(APP_UI_URL)
+        navigateWithRetry(APP_UI_URL)
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 

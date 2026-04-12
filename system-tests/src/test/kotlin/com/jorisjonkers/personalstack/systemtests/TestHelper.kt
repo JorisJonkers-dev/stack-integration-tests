@@ -8,6 +8,7 @@ import io.restassured.http.ContentType
 import io.restassured.specification.RequestSpecification
 import org.apache.commons.codec.binary.Base32
 import org.assertj.core.api.Assertions.assertThat
+import java.net.ConnectException
 import java.sql.DriverManager
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -23,14 +24,36 @@ import java.util.concurrent.TimeUnit
 object TestHelper {
     private const val TOTP_STEP_SECONDS = 30L
     private const val TOTP_MIN_VALIDITY_SECONDS = 5L
+    private const val API_RETRY_ATTEMPTS = 3
+    private const val API_RETRY_DELAY_MS = 2000L
 
     val authBaseUrl = System.getProperty("test.auth-api.url", "https://auth.jorisjonkers.test")
     val assistantBaseUrl = System.getProperty("test.assistant-api.url", "https://assistant.jorisjonkers.test")
 
     fun givenApi(): RequestSpecification = given().relaxedHTTPSValidation()
+
     private val dbUrl = System.getProperty("test.db.url", "jdbc:postgresql://localhost:5432/auth_db")
     private val dbUser = System.getProperty("test.db.user", "auth_user")
     private val dbPassword = System.getProperty("test.db.password", "auth_password")
+
+    private fun <T> retryOnConnectionFailure(action: () -> T): T {
+        var lastException: Exception? = null
+        repeat(API_RETRY_ATTEMPTS) { attempt ->
+            try {
+                return action()
+            } catch (e: Exception) {
+                if (e is ConnectException || e.cause is ConnectException) {
+                    lastException = e
+                    if (attempt < API_RETRY_ATTEMPTS - 1) {
+                        Thread.sleep(API_RETRY_DELAY_MS * (attempt + 1))
+                    }
+                } else {
+                    throw e
+                }
+            }
+        }
+        throw lastException!!
+    }
 
     fun registerAndConfirm(
         username: String = "sys_${UUID.randomUUID().toString().take(8)}",
@@ -38,39 +61,46 @@ object TestHelper {
     ): RegisteredUser {
         val email = "$username@systemtest.example.com"
 
-        givenApi()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"$password"}""")
-            .`when`()
-            .post("/api/v1/users/register")
-            .then()
-            .statusCode(201)
+        retryOnConnectionFailure {
+            givenApi()
+                .baseUri(authBaseUrl)
+                .contentType(ContentType.JSON)
+                .body(
+                    """{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"$password"}""",
+                ).`when`()
+                .post("/api/v1/users/register")
+                .then()
+                .statusCode(201)
+        }
 
         val token = getConfirmationTokenFromDb(username)
 
-        givenApi()
-            .baseUri(authBaseUrl)
-            .`when`()
-            .get("/api/v1/auth/confirm-email?token=$token")
-            .then()
-            .statusCode(200)
+        retryOnConnectionFailure {
+            givenApi()
+                .baseUri(authBaseUrl)
+                .`when`()
+                .get("/api/v1/auth/confirm-email?token=$token")
+                .then()
+                .statusCode(200)
+        }
 
         return RegisteredUser(username, email, password)
     }
 
     fun loginAndGetToken(user: RegisteredUser): String =
-        givenApi()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .body("""{"username":"${user.username}","password":"${user.password}"}""")
-            .`when`()
-            .post("/api/v1/auth/login")
-            .then()
-            .statusCode(200)
-            .extract()
-            .jsonPath()
-            .getString("accessToken")
+        retryOnConnectionFailure {
+            givenApi()
+                .baseUri(authBaseUrl)
+                .contentType(ContentType.JSON)
+                .body("""{"username":"${user.username}","password":"${user.password}"}""")
+                .`when`()
+                .post("/api/v1/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getString("accessToken")
+        }
 
     fun generateFreshTotpCode(secret: String): String {
         val stepMillis = TimeUnit.SECONDS.toMillis(TOTP_STEP_SECONDS)
@@ -104,12 +134,14 @@ object TestHelper {
             }
 
         val response =
-            givenApi()
-                .baseUri(authBaseUrl)
-                .contentType(ContentType.JSON)
-                .body(body)
-                .`when`()
-                .post("/api/v1/auth/session-login")
+            retryOnConnectionFailure {
+                givenApi()
+                    .baseUri(authBaseUrl)
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .`when`()
+                    .post("/api/v1/auth/session-login")
+            }
 
         assertThat(response.statusCode).isEqualTo(200)
         val sessionCookie =
