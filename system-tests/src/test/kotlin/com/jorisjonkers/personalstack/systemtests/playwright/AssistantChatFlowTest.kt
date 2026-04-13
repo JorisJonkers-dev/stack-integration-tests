@@ -117,7 +117,7 @@ class AssistantChatFlowTest : PlaywrightTestBase() {
         page.waitForTimeout(3000.0)
 
         // Reload page
-        page.reload(Page.ReloadOptions().setTimeout(15000.0))
+        page.reload(Page.ReloadOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS))
         page.waitForTimeout(3000.0)
 
         // Select the conversation again

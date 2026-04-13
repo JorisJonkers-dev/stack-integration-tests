@@ -43,7 +43,7 @@ class RabbitMqOidcPlaywrightTest : PlaywrightTestBase() {
             }
             """.trimIndent(),
             null,
-            Page.WaitForFunctionOptions().setTimeout(30000.0),
+            Page.WaitForFunctionOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
         waitForServicePageToSettle(page)
 

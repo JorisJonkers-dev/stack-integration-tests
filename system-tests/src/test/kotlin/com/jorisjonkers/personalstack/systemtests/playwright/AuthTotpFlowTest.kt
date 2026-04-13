@@ -13,7 +13,7 @@ class AuthTotpFlowTest : PlaywrightTestBase() {
         loginViaApi(user)
 
         page.navigate("$AUTH_UI_URL/totp-setup")
-        page.waitForSelector("canvas", Page.WaitForSelectorOptions().setTimeout(15000.0))
+        page.waitForSelector("canvas", Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS))
 
         assertThat(page.locator("canvas")).isVisible()
         assertThat(page.locator("body")).containsText("two-factor")
@@ -25,7 +25,7 @@ class AuthTotpFlowTest : PlaywrightTestBase() {
         loginViaApi(user)
 
         page.navigate("$AUTH_UI_URL/totp-setup")
-        page.waitForSelector("canvas", Page.WaitForSelectorOptions().setTimeout(15000.0))
+        page.waitForSelector("canvas", Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS))
 
         // Extract secret from the page (shown in <code> or <details>)
         page.locator("details summary").click()
@@ -37,7 +37,7 @@ class AuthTotpFlowTest : PlaywrightTestBase() {
 
         page.waitForURL(
             { !it.contains("/totp-setup") },
-            Page.WaitForURLOptions().setTimeout(15000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 
@@ -47,14 +47,14 @@ class AuthTotpFlowTest : PlaywrightTestBase() {
         loginViaApi(user)
 
         page.navigate("$AUTH_UI_URL/totp-setup")
-        page.waitForSelector("canvas", Page.WaitForSelectorOptions().setTimeout(15000.0))
+        page.waitForSelector("canvas", Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS))
 
         page.locator("#totp-code").fill("000000")
         page.locator("button[type='submit']").click()
 
         page.waitForSelector(
             ".text-red-400, .text-red-500",
-            Page.WaitForSelectorOptions().setTimeout(10000.0),
+            Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
         assertThat(page.locator(".text-red-400, .text-red-500").first()).isVisible()
     }
@@ -69,7 +69,7 @@ class AuthTotpFlowTest : PlaywrightTestBase() {
         page.locator("#password").fill(user.password)
         page.locator("button[type='submit']").click()
 
-        page.waitForSelector("#totp-code", Page.WaitForSelectorOptions().setTimeout(10000.0))
+        page.waitForSelector("#totp-code", Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS))
         assertThat(page.locator("#totp-code")).isVisible()
         assertThat(page.locator("body")).containsText("Two-factor")
     }
@@ -84,13 +84,13 @@ class AuthTotpFlowTest : PlaywrightTestBase() {
         page.locator("#password").fill(user.password)
         page.locator("button[type='submit']").click()
 
-        page.waitForSelector("#totp-code", Page.WaitForSelectorOptions().setTimeout(10000.0))
+        page.waitForSelector("#totp-code", Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS))
         page.locator("#totp-code").fill(generateTotpCode(secret))
         page.locator("button[type='submit']").click()
 
         page.waitForURL(
             { !it.contains("/login") },
-            Page.WaitForURLOptions().setTimeout(15000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 
@@ -100,7 +100,7 @@ class AuthTotpFlowTest : PlaywrightTestBase() {
 
         page.waitForURL(
             { it.contains("/login") },
-            Page.WaitForURLOptions().setTimeout(10000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 }

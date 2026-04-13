@@ -76,7 +76,7 @@ class AuthRegistrationFlowTest : PlaywrightTestBase() {
         val token = TestHelper.getConfirmationTokenFromDb(newUsername)
         page.navigate("$AUTH_UI_URL/confirm-email?token=$token")
 
-        page.waitForSelector("text=confirmed", Page.WaitForSelectorOptions().setTimeout(10000.0))
+        page.waitForSelector("text=confirmed", Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS))
         assertThat(page.locator("body")).containsText("confirmed")
     }
 

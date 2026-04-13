@@ -20,7 +20,7 @@ class AuthLoginFlowTest : PlaywrightTestBase() {
 
         page.waitForURL(
             { !it.contains("/login") },
-            Page.WaitForURLOptions().setTimeout(15000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 
@@ -35,7 +35,7 @@ class AuthLoginFlowTest : PlaywrightTestBase() {
 
         page.waitForSelector(
             ".text-red-400, .text-red-500, [role='alert']",
-            Page.WaitForSelectorOptions().setTimeout(10000.0),
+            Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
         assertThat(page.locator(".text-red-400, .text-red-500, [role='alert']").first()).isVisible()
     }
@@ -60,7 +60,7 @@ class AuthLoginFlowTest : PlaywrightTestBase() {
 
         page.waitForSelector(
             ".text-red-400, .text-red-500, [role='alert']",
-            Page.WaitForSelectorOptions().setTimeout(10000.0),
+            Page.WaitForSelectorOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
         assertThat(page.locator("body")).containsText("confirm")
     }
@@ -73,7 +73,7 @@ class AuthLoginFlowTest : PlaywrightTestBase() {
         page.navigate("$AUTH_UI_URL/login")
         page.waitForURL(
             { !it.contains("/login") },
-            Page.WaitForURLOptions().setTimeout(10000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 

@@ -45,7 +45,7 @@ class CrossAppSessionTest : PlaywrightTestBase() {
             loginButton.click()
             page.waitForURL(
                 { it.contains("auth") && it.contains("login") },
-                Page.WaitForURLOptions().setTimeout(10000.0),
+                Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
             )
         }
     }
@@ -56,7 +56,7 @@ class CrossAppSessionTest : PlaywrightTestBase() {
 
         page.waitForURL(
             { it.contains("auth") && it.contains("login") },
-            Page.WaitForURLOptions().setTimeout(10000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 
@@ -66,7 +66,7 @@ class CrossAppSessionTest : PlaywrightTestBase() {
         page.navigate("$ASSISTANT_UI_URL/chat")
         page.waitForURL(
             { it.contains("login") },
-            Page.WaitForURLOptions().setTimeout(10000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
 
         // Login on auth-ui
@@ -78,7 +78,7 @@ class CrossAppSessionTest : PlaywrightTestBase() {
         // Should eventually end up back at assistant-ui
         page.waitForURL(
             { it.contains("assistant") || it.contains("chat") },
-            Page.WaitForURLOptions().setTimeout(20000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 }

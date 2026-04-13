@@ -13,7 +13,7 @@ class LogoutFlowTest : PlaywrightTestBase() {
         page.locator("button:has-text('Logout')").first().click()
         page.waitForURL(
             { it.startsWith(APP_UI_URL) },
-            Page.WaitForURLOptions().setTimeout(10000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
         page.waitForLoadState()
     }
@@ -76,7 +76,7 @@ class LogoutFlowTest : PlaywrightTestBase() {
 
         page.waitForURL(
             { it.contains("login") },
-            Page.WaitForURLOptions().setTimeout(10000.0),
+            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 

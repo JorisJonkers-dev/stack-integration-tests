@@ -5,6 +5,9 @@ plugins {
     id("test-logging-conventions")
 }
 
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.testing.Test
+
 dependencies {
     testImplementation("io.rest-assured:rest-assured:5.5.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
@@ -18,10 +21,38 @@ dependencies {
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
 }
 
-tasks.test {
+val testSourceSet = extensions.getByType(SourceSetContainer::class.java).getByName("test")
+
+fun Test.configureSystemTestTask() {
+    testClassesDirs = testSourceSet.output.classesDirs
+    classpath = testSourceSet.runtimeClasspath
     useJUnitPlatform {
         includeTags("system")
     }
+    gradle.startParameter.systemPropertiesArgs
+        .filterKeys { it.startsWith("test.") }
+        .forEach(::systemProperty)
     outputs.upToDateWhen { false }
-    maxHeapSize = "512m"
+}
+
+tasks.test {
+    configureSystemTestTask()
+}
+
+tasks.register<Test>("testNonPlaywright") {
+    group = "verification"
+    description = "Runs non-Playwright system tests."
+    configureSystemTestTask()
+    filter {
+        excludeTestsMatching("com.jorisjonkers.personalstack.systemtests.playwright.*")
+    }
+}
+
+tasks.register<Test>("testPlaywright") {
+    group = "verification"
+    description = "Runs Playwright-based system tests."
+    configureSystemTestTask()
+    filter {
+        includeTestsMatching("com.jorisjonkers.personalstack.systemtests.playwright.*")
+    }
 }
