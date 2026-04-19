@@ -17,7 +17,7 @@ import org.junit.jupiter.api.TestInstance
 class SessionSecuritySystemTest {
     private val authBaseUrl = TestHelper.authBaseUrl
     private val appUiUrl = System.getProperty("test.app-ui.url", "https://jorisjonkers.test")
-    private val nomadUiUrl = System.getProperty("test.nomad-ui.url", "https://nomad.jorisjonkers.test")
+    private val dashboardUiUrl = System.getProperty("test.dashboard-ui.url", "https://dashboard.jorisjonkers.test")
 
     @Test
     fun `session cookie is HttpOnly`() {
@@ -120,18 +120,18 @@ class SessionSecuritySystemTest {
     }
 
     @Test
-    fun `CORS preflight for forward-auth verify allows nomad origin`() {
+    fun `CORS preflight for forward-auth verify allows dashboard origin`() {
         val response =
             TestHelper.givenApi()
                 .baseUri(authBaseUrl)
-                .header("Origin", nomadUiUrl)
+                .header("Origin", dashboardUiUrl)
                 .header("Access-Control-Request-Method", "GET")
                 .header("Access-Control-Request-Headers", "Content-Type")
                 .`when`()
                 .options("/api/v1/auth/verify")
 
         assertThat(response.statusCode).isIn(200, 204)
-        assertThat(response.header("Access-Control-Allow-Origin")).isEqualTo(nomadUiUrl)
+        assertThat(response.header("Access-Control-Allow-Origin")).isEqualTo(dashboardUiUrl)
         assertThat(response.header("Access-Control-Allow-Credentials")).isEqualTo("true")
     }
 }

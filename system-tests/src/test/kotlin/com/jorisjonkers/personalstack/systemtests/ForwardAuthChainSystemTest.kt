@@ -197,23 +197,23 @@ class ForwardAuthChainSystemTest {
     }
 
     @Test
-    fun `nomad unauthenticated verify redirects to login with original URL`() {
-        val response = verifyForwardAuthForHost("nomad.jorisjonkers.test")
+    fun `dashboard unauthenticated verify redirects to login with original URL`() {
+        val response = verifyForwardAuthForHost("dashboard.jorisjonkers.test")
 
         assertThat(response.statusCode).isEqualTo(302)
         assertThat(response.header("Location"))
             .contains("login")
             .contains("redirect=")
-            .containsIgnoringCase("nomad.jorisjonkers.test")
+            .containsIgnoringCase("dashboard.jorisjonkers.test")
     }
 
     @Test
-    fun `nomad verify denies user without service permission`() {
+    fun `dashboard verify denies user without service permission`() {
         val session = TestHelper.registerConfirmAndGetSession()
 
         val response =
             verifyForwardAuthForHost(
-                host = "nomad.jorisjonkers.test",
+                host = "dashboard.jorisjonkers.test",
                 sessionCookie = session.sessionCookie,
             )
 
@@ -221,12 +221,12 @@ class ForwardAuthChainSystemTest {
     }
 
     @Test
-    fun `nomad verify allows admin session`() {
+    fun `dashboard verify allows admin session`() {
         val session = TestHelper.registerConfirmAndGetAdminSession()
 
         val response =
             verifyForwardAuthForHost(
-                host = "nomad.jorisjonkers.test",
+                host = "dashboard.jorisjonkers.test",
                 sessionCookie = session.sessionCookie,
             )
 
@@ -234,12 +234,12 @@ class ForwardAuthChainSystemTest {
     }
 
     @Test
-    fun `nomad verify allows user with SERVICE_NOMAD`() {
-        val session = TestHelper.registerConfirmGrantAndGetSession("NOMAD")
+    fun `dashboard verify allows user with SERVICE_DASHBOARD`() {
+        val session = TestHelper.registerConfirmGrantAndGetSession("DASHBOARD")
 
         val response =
             verifyForwardAuthForHost(
-                host = "nomad.jorisjonkers.test",
+                host = "dashboard.jorisjonkers.test",
                 sessionCookie = session.sessionCookie,
             )
 
@@ -420,17 +420,17 @@ class ForwardAuthChainSystemTest {
     }
 
     @Test
-    fun `nomad forward-auth redirect preserves original path`() {
+    fun `dashboard forward-auth redirect preserves original path`() {
         val response =
             verifyForwardAuthForHost(
-                host = "nomad.jorisjonkers.test",
-                uri = "/ui/jobs",
+                host = "dashboard.jorisjonkers.test",
+                uri = "/c/default/workloads",
             )
 
         assertThat(response.statusCode).isEqualTo(302)
         assertThat(response.header("Location"))
             .contains("redirect=")
-            .contains("nomad.jorisjonkers.test")
-            .contains("ui%2Fjobs")
+            .contains("dashboard.jorisjonkers.test")
+            .contains("c%2Fdefault%2Fworkloads")
     }
 }
