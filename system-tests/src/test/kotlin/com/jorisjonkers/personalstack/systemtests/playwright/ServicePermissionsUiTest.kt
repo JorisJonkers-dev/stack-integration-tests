@@ -108,7 +108,7 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
-        assertThat(page.locator("text=My Apps")).not().isVisible()
+        assertThat(page.locator("h2:has-text('My Apps')")).not().isVisible()
     }
 
     @Test
@@ -121,6 +121,6 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(3000.0)
 
-        assertThat(page.locator("text=My Apps")).isVisible()
+        assertThat(page.locator("h2:has-text('My Apps')")).isVisible()
     }
 }

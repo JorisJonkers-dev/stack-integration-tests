@@ -55,7 +55,7 @@ class LogoutFlowTest : PlaywrightTestBase() {
         page.waitForTimeout(2000.0)
 
         // Apps grid should not be visible
-        assertThat(page.locator("text=My Apps")).not().isVisible()
+        assertThat(page.locator("h2:has-text('My Apps')")).not().isVisible()
     }
 
     @Test

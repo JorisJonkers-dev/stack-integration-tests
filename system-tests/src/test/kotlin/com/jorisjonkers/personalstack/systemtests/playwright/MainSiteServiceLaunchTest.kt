@@ -392,7 +392,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(3000.0)
 
-        assertThat(page.locator("text=My Apps")).isVisible()
+        assertThat(page.locator("h2:has-text('My Apps')")).isVisible()
         assertThat(page.locator("a[href='/admin']")).isVisible()
     }
 
