@@ -37,18 +37,7 @@ class OAuth2FlowSystemTest {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
     }
 
-    private fun generateTotpCode(secret: String): String {
-        val padded = secret.padEnd((secret.length + 7) / 8 * 8, '=')
-        val secretBytes = Base32().decode(padded)
-        val config =
-            TimeBasedOneTimePasswordConfig(
-                codeDigits = 6,
-                hmacAlgorithm = HmacAlgorithm.SHA1,
-                timeStep = 30,
-                timeStepUnit = TimeUnit.SECONDS,
-            )
-        return TimeBasedOneTimePasswordGenerator(secretBytes, config).generate()
-    }
+    private fun generateTotpCode(secret: String): String = TestHelper.generateFreshTotpCode(secret)
 
     @Test
     fun `session login returns 200 with success for valid credentials`() {

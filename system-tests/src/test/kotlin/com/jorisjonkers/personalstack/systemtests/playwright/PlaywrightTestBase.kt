@@ -178,16 +178,5 @@ abstract class PlaywrightTestBase {
         return secret
     }
 
-    protected fun generateTotpCode(secret: String): String {
-        val padded = secret.padEnd((secret.length + 7) / 8 * 8, '=')
-        val secretBytes = Base32().decode(padded)
-        val config =
-            TimeBasedOneTimePasswordConfig(
-                codeDigits = 6,
-                hmacAlgorithm = HmacAlgorithm.SHA1,
-                timeStep = 30,
-                timeStepUnit = TimeUnit.SECONDS,
-            )
-        return TimeBasedOneTimePasswordGenerator(secretBytes, config).generate()
-    }
+    protected fun generateTotpCode(secret: String): String = TestHelper.generateFreshTotpCode(secret)
 }

@@ -22,18 +22,7 @@ import java.util.concurrent.TimeUnit
 class TotpReLoginSystemTest {
     private val authBaseUrl = TestHelper.authBaseUrl
 
-    private fun generateTotpCode(secret: String): String {
-        val padded = secret.padEnd((secret.length + 7) / 8 * 8, '=')
-        val secretBytes = Base32().decode(padded)
-        val config =
-            TimeBasedOneTimePasswordConfig(
-                codeDigits = 6,
-                hmacAlgorithm = HmacAlgorithm.SHA1,
-                timeStep = 30,
-                timeStepUnit = TimeUnit.SECONDS,
-            )
-        return TimeBasedOneTimePasswordGenerator(secretBytes, config).generate()
-    }
+    private fun generateTotpCode(secret: String): String = TestHelper.generateFreshTotpCode(secret)
 
     private fun registerAndConfirm(username: String): TestHelper.RegisteredUser =
         TestHelper.registerAndConfirm(username = username, password = "ReLogin1!")
