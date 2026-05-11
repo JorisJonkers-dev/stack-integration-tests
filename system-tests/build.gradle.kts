@@ -13,15 +13,11 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:3.27.7")
-    // Pinned to 1.21.x: Testcontainers 2.0 removed the junit-jupiter
-    // submodule and restructured the base library. The jump isn't a
-    // drop-in replacement; lift once we migrate system-tests to the
-    // 2.x API.
-    testImplementation("org.testcontainers:testcontainers:1.21.4")
-    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
+    testImplementation("org.testcontainers:testcontainers:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.5")
     testImplementation("dev.turingcomplete:kotlin-onetimepassword:2.4.1")
-    testImplementation("commons-codec:commons-codec:1.21.0")
-    testRuntimeOnly("org.postgresql:postgresql:42.7.10")
+    testImplementation("commons-codec:commons-codec:1.22.0")
+    testRuntimeOnly("org.postgresql:postgresql:42.7.11")
     testImplementation("com.microsoft.playwright:playwright:1.59.0")
 }
 
