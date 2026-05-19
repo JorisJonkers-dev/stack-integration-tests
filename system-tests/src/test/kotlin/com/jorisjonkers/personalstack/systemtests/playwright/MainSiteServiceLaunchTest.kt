@@ -241,7 +241,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `main site launches Assistant directly into chat ui`() {
+    fun `main site launches Assistant directly into workspaces ui`() {
         prepareAdminSessionOnMainSite()
 
         page.navigate(APP_UI_URL)
@@ -279,7 +279,11 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
             assertThatValue(
                 seenUrls.none { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") },
             ).isTrue()
-            assertThatValue(pageText).contains("select a conversation")
+            // The agents branch replaces the chat-shell landing page with a
+            // workspaces dashboard. Empty-state copy "no workspaces yet"
+            // pins the new shape; "workspaces" alone could match nav links
+            // on the older UI.
+            assertThatValue(pageText).contains("no workspaces yet")
         } finally {
             servicePage.close()
         }
