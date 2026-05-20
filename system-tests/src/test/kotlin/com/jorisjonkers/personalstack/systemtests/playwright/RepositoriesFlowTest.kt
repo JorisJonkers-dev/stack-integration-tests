@@ -2,7 +2,6 @@ package com.jorisjonkers.personalstack.systemtests.playwright
 
 import com.jorisjonkers.personalstack.systemtests.TestHelper
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -44,13 +43,7 @@ class RepositoriesFlowTest : PlaywrightTestBase() {
     }
 
     @Test
-    @Disabled(
-        "Attach-key flow surfaces 500s in the docker-compose stack because Vault is disabled — " +
-            "the wizard's success path never fires and the modal stays open. PR I overhauls the " +
-            "assistant-api exception handler so this flow returns a meaningful 4xx; PR G.2 will " +
-            "re-enable + retarget this test against that shape.",
-    )
-    fun `user can open the attach-key wizard and submit a key`() {
+    fun `attach-key wizard surfaces the meaningful 4xx when Vault is disabled`() {
         val user = registerAndConfirm()
         TestHelper.grantServicePermission(user.username, "ASSISTANT")
         loginViaApi(user)
@@ -68,24 +61,32 @@ class RepositoriesFlowTest : PlaywrightTestBase() {
         page.locator("[data-testid='repository-attach-key']").click()
         assertThat(page.locator("[data-testid='attach-key-wizard']")).isVisible()
 
-        // Synthetic OpenSSH armour — assistant-api stores it verbatim,
-        // doesn't validate cryptographic contents.
+        // Synthetic OpenSSH armour — assistant-api validates the
+        // PEM shape but doesn't crypto-verify the bytes.
         page.locator("[data-testid='attach-key-private']").fill(
             "-----BEGIN OPENSSH PRIVATE KEY-----\nrt-private-$name\n-----END OPENSSH PRIVATE KEY-----\n",
         )
         page.locator("[data-testid='attach-key-public']").fill("ssh-ed25519 AAAA-$name test@laptop")
         page.locator("[data-testid='attach-key-submit']").click()
 
-        // POST /key returns 202 Accepted — the fingerprint propagation
-        // is async via Vault, which is disabled in the docker-compose
-        // system-test stack. Rather than coupling this test to Vault
-        // availability, assert that the wizard's modal closes (the
-        // submit's success path emits then `showKeyWizard = false`)
-        // and the detail surface is still healthy. End-to-end Vault
-        // propagation is covered by the assistant-api integration
-        // tests.
-        assertThat(page.locator("[data-testid='attach-key-wizard']")).not().isVisible()
-        assertThat(page.locator("[data-testid='repository-detail']")).isVisible()
+        // POST /key writes to Vault, which is disabled in the
+        // docker-compose system-test stack. PR #383 surfaces the
+        // upstream failure as a meaningful 502 ProblemDetail rather
+        // than a bare 500. The UI keeps the modal open (so the user
+        // can retry without losing typed input), surfaces a toast
+        // carrying the ProblemDetail, and flips the SubmitButton to
+        // its `failure` indicator.
+        assertThat(page.locator("[data-testid='attach-key-wizard']")).isVisible()
+        val toast = page.locator("[data-testid='toast'][data-kind='error']").first()
+        assertThat(toast).isVisible()
+        assertThat(toast).containsText("Could not attach the deploy key")
+        // SubmitButton emits `data-status="failure"` after the
+        // mutation rejects. `useMutationState` auto-resets to `idle`
+        // after 2_000 ms, so this assertion has to race the timer —
+        // Playwright's default 5 s polling is well within that window
+        // on the first poll after the click resolves.
+        assertThat(page.locator("[data-testid='attach-key-submit']"))
+            .hasAttribute("data-status", "failure")
     }
 
     @Test
