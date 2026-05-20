@@ -112,14 +112,20 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `authenticated user sees apps grid on home page`() {
+    fun `authenticated user reaches apps grid via the My Apps nav link`() {
+        // The home page used to render `<AppsGrid>` inline for any
+        // authenticated user. PR #387 dropped that — the dedicated
+        // `/apps` route is the canonical surface and the home view
+        // stays focused on the portfolio. This test was retargeted
+        // to verify the nav link reaches the apps grid instead.
         val user = registerAndConfirm()
         TestHelper.grantServicePermission(user.username, "GRAFANA")
         loginViaApi(user)
 
         page.navigate(APP_UI_URL)
         page.waitForLoadState()
-        page.waitForTimeout(3000.0)
+        page.locator("[data-testid='nav-my-apps']").first().click()
+        page.waitForURL { it.contains("/apps") }
 
         assertThat(page.locator("h2:has-text('My Apps')")).isVisible()
     }

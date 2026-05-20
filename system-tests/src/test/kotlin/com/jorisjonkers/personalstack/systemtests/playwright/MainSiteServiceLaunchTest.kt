@@ -14,7 +14,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     fun `main site launches Vault and completes downstream oidc login`() {
         prepareAdminSessionOnMainSite()
 
-        page.navigate(APP_UI_URL)
+        page.navigate("$APP_UI_URL/apps")
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
@@ -62,7 +62,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     fun `main site launches Stalwart through forward auth to web admin`() {
         prepareAdminSessionOnMainSite()
 
-        page.navigate(APP_UI_URL)
+        page.navigate("$APP_UI_URL/apps")
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
@@ -107,7 +107,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     fun `main site launches n8n and completes downstream oidc login once`() {
         prepareAdminSessionOnMainSite()
 
-        page.navigate(APP_UI_URL)
+        page.navigate("$APP_UI_URL/apps")
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
@@ -181,7 +181,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     fun `main site launches Grafana and completes downstream oidc login`() {
         prepareAdminSessionOnMainSite()
 
-        page.navigate(APP_UI_URL)
+        page.navigate("$APP_UI_URL/apps")
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
@@ -244,7 +244,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     fun `main site launches Assistant directly into workspaces ui`() {
         prepareAdminSessionOnMainSite()
 
-        page.navigate(APP_UI_URL)
+        page.navigate("$APP_UI_URL/apps")
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
@@ -293,7 +293,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     fun `main site launches Traefik through forward auth to dashboard`() {
         prepareAdminSessionOnMainSite()
 
-        page.navigate(APP_UI_URL)
+        page.navigate("$APP_UI_URL/apps")
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
@@ -338,7 +338,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     fun `main site launches Status into a configured uptime page`() {
         prepareAdminSessionOnMainSite()
 
-        page.navigate(APP_UI_URL)
+        page.navigate("$APP_UI_URL/apps")
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
@@ -392,7 +392,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
         context.clearCookies()
         loginFromMainSiteWithTotp(user, totpSecret)
 
-        page.navigate(APP_UI_URL)
+        page.navigate("$APP_UI_URL/apps")
         page.waitForLoadState()
         page.waitForTimeout(3000.0)
 
