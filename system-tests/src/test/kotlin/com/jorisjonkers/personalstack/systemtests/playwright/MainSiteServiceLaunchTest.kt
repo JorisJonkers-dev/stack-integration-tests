@@ -241,7 +241,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `main site launches Assistant directly into workspaces ui`() {
+    fun `main site launches Assistant directly into sessions ui`() {
         prepareAdminSessionOnMainSite()
 
         page.navigate("$APP_UI_URL/apps")
@@ -268,22 +268,18 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
             val currentUrl = servicePage.url()
             assertThatValue(currentUrl)
                 .contains("assistant.jorisjonkers.test")
+                .endsWith("/sessions")
                 .doesNotContain("auth.jorisjonkers.test/login")
                 .doesNotContain("error=")
 
-            val pageText = buildString {
-                append(servicePage.title())
-                append('\n')
-                append(servicePage.locator("body").textContent().orEmpty())
-            }.lowercase()
             assertThatValue(
                 seenUrls.none { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") },
             ).isTrue()
-            // The agents branch replaces the chat-shell landing page with a
-            // workspaces dashboard. Empty-state copy "no workspaces yet"
-            // pins the new shape; "workspaces" alone could match nav links
-            // on the older UI.
-            assertThatValue(pageText).contains("no workspaces yet")
+            // The redesigned landing page is the Sessions tab host. The
+            // Chat tab is the default — its empty-state copy pins the
+            // new shape without depending on any seed data.
+            assertThat(servicePage.locator("[data-testid='sessions-tab-chat']")).isVisible()
+            assertThat(servicePage.locator("[data-testid='chat-tab']")).isVisible()
         } finally {
             servicePage.close()
         }

@@ -64,7 +64,7 @@ class LogoutFlowTest : PlaywrightTestBase() {
         loginViaApi(user)
 
         // Verify we can access assistant-ui
-        page.navigate("$ASSISTANT_UI_URL/chat")
+        page.navigate("$ASSISTANT_UI_URL/sessions")
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
@@ -72,7 +72,7 @@ class LogoutFlowTest : PlaywrightTestBase() {
         context.clearCookies()
 
         // Navigate to assistant-ui again
-        page.navigate("$ASSISTANT_UI_URL/chat")
+        page.navigate("$ASSISTANT_UI_URL/sessions")
 
         page.waitForURL(
             { it.contains("login") },

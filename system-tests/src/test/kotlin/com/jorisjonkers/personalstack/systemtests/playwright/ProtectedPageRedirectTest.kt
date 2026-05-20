@@ -38,8 +38,8 @@ class ProtectedPageRedirectTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `assistant-ui chat redirects to auth-ui login`() {
-        page.navigate("$ASSISTANT_UI_URL/chat")
+    fun `assistant-ui sessions redirects to auth-ui login`() {
+        page.navigate("$ASSISTANT_UI_URL/sessions")
 
         page.waitForURL(
             { it.contains("login") },

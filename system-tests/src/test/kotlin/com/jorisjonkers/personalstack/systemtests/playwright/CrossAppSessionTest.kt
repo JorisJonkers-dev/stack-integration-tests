@@ -23,10 +23,10 @@ class CrossAppSessionTest : PlaywrightTestBase() {
         val user = registerAndConfirm()
         loginViaApi(user)
 
-        page.navigate("$ASSISTANT_UI_URL/chat")
+        page.navigate("$ASSISTANT_UI_URL/sessions")
         page.waitForLoadState()
 
-        // Should NOT be redirected to login — chat page should load
+        // Should NOT be redirected to login — sessions page should load
         page.waitForTimeout(3000.0)
         assertThat(page.locator("body")).not().containsText("Sign in")
     }
@@ -52,7 +52,7 @@ class CrossAppSessionTest : PlaywrightTestBase() {
 
     @Test
     fun `assistant-ui redirects to auth-ui when unauthenticated`() {
-        page.navigate("$ASSISTANT_UI_URL/chat")
+        page.navigate("$ASSISTANT_UI_URL/sessions")
 
         page.waitForURL(
             { it.contains("auth") && it.contains("login") },
@@ -63,7 +63,7 @@ class CrossAppSessionTest : PlaywrightTestBase() {
     @Test
     fun `after login redirect returns to original app`() {
         // Navigate to assistant-ui while unauthenticated — should redirect to auth login
-        page.navigate("$ASSISTANT_UI_URL/chat")
+        page.navigate("$ASSISTANT_UI_URL/sessions")
         page.waitForURL(
             { it.contains("login") },
             Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
@@ -77,7 +77,7 @@ class CrossAppSessionTest : PlaywrightTestBase() {
 
         // Should eventually end up back at assistant-ui
         page.waitForURL(
-            { it.contains("assistant") || it.contains("chat") },
+            { it.contains("assistant") || it.contains("sessions") },
             Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
