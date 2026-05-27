@@ -66,7 +66,7 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
-        val card = page.locator("a[href='https://stalwart.jorisjonkers.test/']").first()
+        val card = page.locator("a[href='https://stalwart.jorisjonkers.test/admin/']").first()
         assertThat(card).isVisible()
 
         val seenUrls = mutableListOf<String>()
@@ -97,7 +97,14 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
             assertThatValue(
                 seenUrls.none { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") },
             ).isTrue()
-            assertThatValue(pageText).contains("stalwart management")
+            // The v0.16 webadmin SPA carries the document title "Portal"
+            // (the login screen body is just an account-name form), which
+            // confirms the management UI loaded behind forward-auth rather
+            // than the auth-ui login page. "stalwart" is accepted too in
+            // case a later route surfaces the brand in the body text.
+            assertThatValue(
+                pageText.contains("portal") || pageText.contains("stalwart"),
+            ).isTrue()
         } finally {
             servicePage.close()
         }
