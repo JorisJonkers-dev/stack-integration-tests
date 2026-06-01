@@ -10,15 +10,15 @@ import org.gradle.api.tasks.testing.Test
 
 dependencies {
     testImplementation("io.rest-assured:rest-assured:6.0.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.testcontainers:testcontainers:2.0.5")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.5")
-    testImplementation("dev.turingcomplete:kotlin-onetimepassword:2.4.1")
+    testImplementation("dev.turingcomplete:kotlin-onetimepassword:3.0.0")
     testImplementation("commons-codec:commons-codec:1.22.0")
     testRuntimeOnly("org.postgresql:postgresql:42.7.11")
-    testImplementation("com.microsoft.playwright:playwright:1.59.0")
+    testImplementation("com.microsoft.playwright:playwright:1.60.0")
 }
 
 val testSourceSet = extensions.getByType(SourceSetContainer::class.java).getByName("test")
