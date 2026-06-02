@@ -117,14 +117,17 @@ class ServicePermissionsUiTest : PlaywrightTestBase() {
         // authenticated user. PR #387 dropped that — the dedicated
         // `/apps` route is the canonical surface and the home view
         // stays focused on the portfolio. This test was retargeted
-        // to verify the nav link reaches the apps grid instead.
+        // to verify the nav link reaches the apps grid instead. My Apps
+        // now lives behind the profile dropdown rather than a standalone
+        // navbar link.
         val user = registerAndConfirm()
         TestHelper.grantServicePermission(user.username, "GRAFANA")
         loginViaApi(user)
 
         page.navigate(APP_UI_URL)
         page.waitForLoadState()
-        page.locator("[data-testid='nav-my-apps']").first().click()
+        page.locator("[data-testid='nav-profile']").first().click()
+        page.locator("[data-testid='dropdown-my-apps']").first().click()
         page.waitForURL { it.contains("/apps") }
 
         assertThat(page.locator("h2:has-text('My Apps')")).isVisible()

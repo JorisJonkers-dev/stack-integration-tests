@@ -8,14 +8,15 @@ import java.util.regex.Pattern
 
 /**
  * The `/apps` route has existed since the MyApps feature landed, but
- * without a navbar entry it was only reachable by typing the URL.
- * These tests pin the contract: the link is visible when signed in,
- * hidden otherwise, and clicking it lands on the grid.
+ * is only reachable through the UI via the profile dropdown (the
+ * standalone navbar link was folded into it). These tests pin the
+ * contract: the entry is reachable when signed in, absent otherwise,
+ * and clicking it lands on the grid.
  */
 @Tag("system")
 class MyAppsNavTest : PlaywrightTestBase() {
     @Test
-    fun `authenticated user sees My Apps link in navbar`() {
+    fun `authenticated user sees My Apps entry in the profile dropdown`() {
         val user = registerAndConfirm()
         loginViaApi(user)
 
@@ -23,16 +24,18 @@ class MyAppsNavTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
-        assertThat(page.locator("[data-testid='nav-my-apps']")).isVisible()
+        page.locator("[data-testid='nav-profile']").click()
+        assertThat(page.locator("[data-testid='dropdown-my-apps']")).isVisible()
     }
 
     @Test
-    fun `unauthenticated user does not see My Apps link`() {
+    fun `unauthenticated user does not see the profile dropdown`() {
         page.navigate(APP_UI_URL)
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
-        assertThat(page.locator("[data-testid='nav-my-apps']")).not().isVisible()
+        assertThat(page.locator("[data-testid='nav-profile']")).not().isVisible()
+        assertThat(page.locator("[data-testid='dropdown-my-apps']")).not().isVisible()
     }
 
     @Test
@@ -44,7 +47,8 @@ class MyAppsNavTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
-        page.locator("[data-testid='nav-my-apps']").click()
+        page.locator("[data-testid='nav-profile']").click()
+        page.locator("[data-testid='dropdown-my-apps']").click()
 
         page.waitForURL(
             { it.endsWith("/apps") },

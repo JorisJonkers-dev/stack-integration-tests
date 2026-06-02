@@ -9,18 +9,19 @@ class RoleBasedAccessTest : PlaywrightTestBase() {
     private fun userCard(username: String) = page.locator("div.rounded-lg:has-text('$username')").first()
 
     @Test
-    fun `admin user sees admin link in navbar`() {
+    fun `admin user sees admin entry in the profile dropdown`() {
         loginAsAdmin()
 
         page.navigate(APP_UI_URL)
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
-        assertThat(page.locator("a[href='/admin']")).isVisible()
+        page.locator("[data-testid='nav-profile']").click()
+        assertThat(page.locator("[data-testid='dropdown-admin']")).isVisible()
     }
 
     @Test
-    fun `regular user does not see admin link`() {
+    fun `regular user does not see admin entry in the profile dropdown`() {
         val user = registerAndConfirm()
         loginViaApi(user)
 
@@ -28,7 +29,8 @@ class RoleBasedAccessTest : PlaywrightTestBase() {
         page.waitForLoadState()
         page.waitForTimeout(2000.0)
 
-        assertThat(page.locator("a[href='/admin']")).not().isVisible()
+        page.locator("[data-testid='nav-profile']").click()
+        assertThat(page.locator("[data-testid='dropdown-admin']")).not().isVisible()
     }
 
     @Test

@@ -400,7 +400,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
         page.waitForTimeout(3000.0)
 
         assertThat(page.locator("h2:has-text('My Apps')")).isVisible()
-        assertThat(page.locator("a[href='/admin']")).isVisible()
+        // Admin moved into the profile dropdown; open it to confirm the
+        // elevated role took effect, then close it so it does not overlay
+        // the service cards the launch tests click next.
+        page.locator("[data-testid='nav-profile']").click()
+        assertThat(page.locator("[data-testid='dropdown-admin']")).isVisible()
+        page.locator("[data-testid='nav-profile']").click()
     }
 
     private fun loginFromMainSiteAndEnrollTotp(user: TestHelper.RegisteredUser): String {
