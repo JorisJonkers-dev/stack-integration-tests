@@ -19,19 +19,6 @@ class CrossAppSessionTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `login on auth-ui creates session visible on assistant-ui`() {
-        val user = registerAndConfirm()
-        loginViaApi(user)
-
-        page.navigate("$ASSISTANT_UI_URL/sessions")
-        page.waitForLoadState()
-
-        // Should NOT be redirected to login — sessions page should load
-        page.waitForTimeout(3000.0)
-        assertThat(page.locator("body")).not().containsText("Sign in")
-    }
-
-    @Test
     fun `app-ui login button redirects to auth-ui`() {
         page.navigate(APP_UI_URL)
         page.waitForLoadState()
@@ -48,37 +35,5 @@ class CrossAppSessionTest : PlaywrightTestBase() {
                 Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
             )
         }
-    }
-
-    @Test
-    fun `assistant-ui redirects to auth-ui when unauthenticated`() {
-        page.navigate("$ASSISTANT_UI_URL/sessions")
-
-        page.waitForURL(
-            { it.contains("auth") && it.contains("login") },
-            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
-        )
-    }
-
-    @Test
-    fun `after login redirect returns to original app`() {
-        // Navigate to assistant-ui while unauthenticated — should redirect to auth login
-        page.navigate("$ASSISTANT_UI_URL/sessions")
-        page.waitForURL(
-            { it.contains("login") },
-            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
-        )
-
-        // Login on auth-ui
-        val user = registerAndConfirm()
-        page.locator("#username").fill(user.username)
-        page.locator("#password").fill(user.password)
-        page.locator("button[type='submit']").click()
-
-        // Should eventually end up back at assistant-ui
-        page.waitForURL(
-            { it.contains("assistant") || it.contains("sessions") },
-            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
-        )
     }
 }

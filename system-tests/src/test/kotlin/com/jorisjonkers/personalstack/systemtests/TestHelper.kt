@@ -28,7 +28,6 @@ object TestHelper {
     private const val API_RETRY_DELAY_MS = 2000L
 
     val authBaseUrl = System.getProperty("test.auth-api.url", "https://auth.jorisjonkers.test")
-    val assistantBaseUrl = System.getProperty("test.assistant-api.url", "https://assistant.jorisjonkers.test")
 
     fun givenApi(): RequestSpecification = given().relaxedHTTPSValidation()
 

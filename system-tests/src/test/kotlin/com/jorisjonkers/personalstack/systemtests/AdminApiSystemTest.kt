@@ -100,7 +100,7 @@ class AdminApiSystemTest {
             .cookie("XSRF-TOKEN", adminSession.csrfToken)
             .header("X-XSRF-TOKEN", adminSession.csrfToken)
             .contentType(ContentType.JSON)
-            .body("""{"services":["GRAFANA","ASSISTANT"]}""")
+            .body("""{"services":["GRAFANA","AGENTS"]}""")
             .`when`()
             .put("/api/v1/admin/users/$targetId/services")
             .then()
@@ -118,7 +118,7 @@ class AdminApiSystemTest {
                 .jsonPath()
                 .getList<String>("servicePermissions")
 
-        assertThat(withPerms).containsExactlyInAnyOrder("ASSISTANT", "GRAFANA")
+        assertThat(withPerms).containsExactlyInAnyOrder("AGENTS", "GRAFANA")
     }
 
     @Test

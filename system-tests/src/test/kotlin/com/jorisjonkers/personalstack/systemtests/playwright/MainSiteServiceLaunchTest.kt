@@ -248,51 +248,6 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `main site launches Assistant directly into sessions ui`() {
-        prepareAdminSessionOnMainSite()
-
-        page.navigate("$APP_UI_URL/apps")
-        page.waitForLoadState()
-        page.waitForTimeout(2000.0)
-
-        val card = page.locator("a[href='https://assistant.jorisjonkers.test/']").first()
-        assertThat(card).isVisible()
-
-        val seenUrls = mutableListOf<String>()
-        context.onRequest { request ->
-            val url = request.url()
-            if (url.contains("assistant.jorisjonkers.test") || url.contains("auth.jorisjonkers.test")) {
-                seenUrls += url
-            }
-        }
-
-        val servicePage = context.waitForPage(card::click)
-        servicePage.waitForLoadState()
-        servicePage.waitForTimeout(5000.0)
-        try {
-            waitForServicePageToSettle(servicePage)
-
-            val currentUrl = servicePage.url()
-            assertThatValue(currentUrl)
-                .contains("assistant.jorisjonkers.test")
-                .endsWith("/sessions")
-                .doesNotContain("auth.jorisjonkers.test/login")
-                .doesNotContain("error=")
-
-            assertThatValue(
-                seenUrls.none { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") },
-            ).isTrue()
-            // The redesigned landing page is the Sessions tab host. The
-            // Chat tab is the default — its empty-state copy pins the
-            // new shape without depending on any seed data.
-            assertThat(servicePage.locator("[data-testid='sessions-tab-chat']")).isVisible()
-            assertThat(servicePage.locator("[data-testid='chat-tab']")).isVisible()
-        } finally {
-            servicePage.close()
-        }
-    }
-
-    @Test
     fun `main site launches Traefik through forward auth to dashboard`() {
         prepareAdminSessionOnMainSite()
 

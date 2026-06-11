@@ -24,7 +24,6 @@ class HealthSmokeSystemTest {
         fun services(): Stream<Arguments> =
             Stream.of(
                 Arguments.of("auth-api", "https://auth.jorisjonkers.test"),
-                Arguments.of("assistant-api", "https://assistant.jorisjonkers.test"),
             )
     }
 

@@ -1,6 +1,5 @@
 package com.jorisjonkers.personalstack.systemtests.playwright
 
-import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -38,22 +37,12 @@ class ProtectedPageRedirectTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `assistant-ui sessions redirects to auth-ui login`() {
-        page.navigate("$ASSISTANT_UI_URL/sessions")
-
-        page.waitForURL(
-            { it.contains("login") },
-            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
-        )
-    }
-
-    @Test
     fun `mail protected service redirects to login`() {
         page.navigate("https://stalwart.jorisjonkers.test")
 
         page.waitForURL(
             { it.contains("login") },
-            Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
+            com.microsoft.playwright.Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 

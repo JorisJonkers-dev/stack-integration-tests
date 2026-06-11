@@ -19,7 +19,6 @@ class TraefikSystemTest {
     // UI services
     private val appUiUrl = "https://jorisjonkers.test"
     private val authUiUrl = "https://auth.jorisjonkers.test"
-    private val assistantUiUrl = "https://assistant.jorisjonkers.test"
 
     // Native OIDC services
     private val vaultUrl = "https://vault.jorisjonkers.test"
@@ -49,16 +48,6 @@ class TraefikSystemTest {
     fun `auth-ui responds at auth dot localhost`() {
         traefikRequest()
             .baseUri(authUiUrl)
-            .`when`()
-            .get("/")
-            .then()
-            .statusCode(200)
-    }
-
-    @Test
-    fun `assistant-ui responds at app dot localhost`() {
-        traefikRequest()
-            .baseUri(assistantUiUrl)
             .`when`()
             .get("/")
             .then()
