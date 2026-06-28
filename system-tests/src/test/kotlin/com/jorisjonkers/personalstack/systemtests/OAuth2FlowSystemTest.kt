@@ -1,10 +1,6 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
-import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
-import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
 import io.restassured.http.ContentType
-import org.apache.commons.codec.binary.Base32
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -13,7 +9,6 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 /**
  * System test: OAuth2 session-login and PKCE authorization code flow.
@@ -44,7 +39,8 @@ class OAuth2FlowSystemTest {
         val user = TestHelper.registerAndConfirm()
 
         val json =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -68,7 +64,8 @@ class OAuth2FlowSystemTest {
 
         // Enroll TOTP
         val secret =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .cookie("XSRF-TOKEN", session.csrfToken)
@@ -82,7 +79,8 @@ class OAuth2FlowSystemTest {
                 .getString("secret")
 
         // Verify TOTP to enable it
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .cookie("SESSION", session.sessionCookie)
@@ -96,7 +94,8 @@ class OAuth2FlowSystemTest {
 
         // Session login without TOTP code should return totpRequired
         val json =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -120,7 +119,8 @@ class OAuth2FlowSystemTest {
 
         // Enroll and verify TOTP
         val secret =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .cookie("XSRF-TOKEN", session.csrfToken)
@@ -133,7 +133,8 @@ class OAuth2FlowSystemTest {
                 .jsonPath()
                 .getString("secret")
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .cookie("SESSION", session.sessionCookie)
@@ -147,7 +148,8 @@ class OAuth2FlowSystemTest {
 
         // Session login with TOTP code should succeed
         val json =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body(
@@ -166,7 +168,8 @@ class OAuth2FlowSystemTest {
 
     @Test
     fun `session login with invalid credentials returns 400`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"nonexistent_user","password":"WrongPass1!"}""")
@@ -180,7 +183,8 @@ class OAuth2FlowSystemTest {
     fun `session login with unconfirmed email returns 400`() {
         val username = "unconf_sess_${UUID.randomUUID().toString().take(8)}"
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}""")
@@ -189,7 +193,8 @@ class OAuth2FlowSystemTest {
             .then()
             .statusCode(201)
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","password":"Test1234!"}""")
@@ -204,7 +209,8 @@ class OAuth2FlowSystemTest {
         val user = TestHelper.registerAndConfirm()
 
         val response =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -223,7 +229,8 @@ class OAuth2FlowSystemTest {
     @Test
     fun `session login with blank username returns validation error`() {
         val status =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"","password":"Test1234!"}""")
@@ -243,7 +250,8 @@ class OAuth2FlowSystemTest {
 
         // Enroll and verify TOTP
         val secret =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .cookie("XSRF-TOKEN", session.csrfToken)
@@ -256,7 +264,8 @@ class OAuth2FlowSystemTest {
                 .jsonPath()
                 .getString("secret")
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .cookie("SESSION", session.sessionCookie)
@@ -269,7 +278,8 @@ class OAuth2FlowSystemTest {
             .statusCode(204)
 
         // Session login with wrong TOTP code
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"${user.username}","password":"${user.password}","totpCode":"000000"}""")
@@ -285,7 +295,8 @@ class OAuth2FlowSystemTest {
 
         // Step 1: Session login to get session cookie
         val sessionResponse =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -301,7 +312,8 @@ class OAuth2FlowSystemTest {
         val codeChallenge = generateCodeChallenge(codeVerifier)
 
         val authorizeResponse =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", sessionCookie)
                 .redirects()
@@ -333,7 +345,8 @@ class OAuth2FlowSystemTest {
 
         // Step 1: Session login
         val sessionResponse =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -349,7 +362,8 @@ class OAuth2FlowSystemTest {
         val codeChallenge = generateCodeChallenge(codeVerifier)
 
         val authorizeResponse =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", sessionCookie)
                 .redirects()
@@ -380,7 +394,8 @@ class OAuth2FlowSystemTest {
 
         // Step 3: Exchange code for tokens
         val tokenJson =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.URLENC)
                 .formParam("grant_type", "authorization_code")

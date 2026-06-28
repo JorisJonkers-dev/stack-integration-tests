@@ -65,7 +65,8 @@ class AuthRegistrationFlowTest : PlaywrightTestBase() {
         // Register a NEW user (unconfirmed) and get token from DB
         val newUsername = uniqueUsername("conf2")
         val email = "$newUsername@systemtest.example.com"
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(TestHelper.authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$newUsername","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}""")

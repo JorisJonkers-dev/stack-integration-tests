@@ -9,11 +9,7 @@ import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.PlaywrightException
 import com.microsoft.playwright.options.Cookie
 import com.microsoft.playwright.options.SameSiteAttribute
-import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
-import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
-import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
 import io.restassured.http.ContentType
-import org.apache.commons.codec.binary.Base32
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
@@ -21,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 internal const val MAX_PLAYWRIGHT_TIMEOUT_MS = 5_000.0
 
@@ -32,7 +27,8 @@ abstract class PlaywrightTestBase {
         val AUTH_UI_URL: String =
             System.getProperty("test.auth-ui.url", "https://auth.jorisjonkers.test")
         val APP_UI_URL: String =
-            System.getProperty("test.app-ui.url", "https://jorisjonkers.test")
+            System.getProperty("test.home-portal.url")
+                ?: System.getProperty("test.app-ui.url", "https://jorisjonkers.test")
     }
 
     private lateinit var playwright: Playwright

@@ -15,7 +15,8 @@ class GrafanaOidcSystemTest {
         val cookies = CookieFilter()
 
         val oauthRedirect =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .filter(cookies)
                 .baseUri("https://grafana.jorisjonkers.test")
                 .cookie("SESSION", adminSession.sessionCookie)

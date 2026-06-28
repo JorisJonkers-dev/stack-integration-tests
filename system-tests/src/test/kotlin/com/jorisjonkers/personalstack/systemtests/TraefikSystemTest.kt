@@ -188,5 +188,4 @@ class TraefikSystemTest {
         assertThat(response.statusCode).isNotIn(401, 403)
         assertThat(response.header("Location").orEmpty()).doesNotContain("auth.jorisjonkers.test/login")
     }
-
 }

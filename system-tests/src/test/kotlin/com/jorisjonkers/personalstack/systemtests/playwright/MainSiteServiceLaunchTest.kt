@@ -4,9 +4,9 @@ import com.jorisjonkers.personalstack.systemtests.TestHelper
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.PlaywrightException
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import org.assertj.core.api.Assertions.assertThat as assertThatValue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.assertj.core.api.Assertions.assertThat as assertThatValue
 
 @Tag("system")
 class MainSiteServiceLaunchTest : PlaywrightTestBase() {
@@ -42,11 +42,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
                 .doesNotContain("/ui/vault/auth")
                 .doesNotContain("error=")
 
-            val pageText = buildString {
-                append(servicePage.title())
-                append('\n')
-                append(servicePage.locator("body").textContent().orEmpty())
-            }.lowercase()
+            val pageText =
+                buildString {
+                    append(servicePage.title())
+                    append('\n')
+                    append(servicePage.locator("body").textContent().orEmpty())
+                }.lowercase()
             assertThatValue(seenUrls.any { it.contains("/v1/auth/oidc/oidc/auth_url") }).isTrue()
             assertThatValue(
                 seenUrls.any { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") && it.contains("client_id=vault") },
@@ -89,11 +90,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
                 .doesNotContain("auth.jorisjonkers.test/login")
                 .doesNotContain("error=")
 
-            val pageText = buildString {
-                append(servicePage.title())
-                append('\n')
-                append(servicePage.locator("body").textContent().orEmpty())
-            }.lowercase()
+            val pageText =
+                buildString {
+                    append(servicePage.title())
+                    append('\n')
+                    append(servicePage.locator("body").textContent().orEmpty())
+                }.lowercase()
             assertThatValue(
                 seenUrls.none { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") },
             ).isTrue()
@@ -142,11 +144,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
             )
 
             if (servicePage.url().contains("/signin")) {
-                val signInPageText = buildString {
-                    append(servicePage.title())
-                    append('\n')
-                    append(servicePage.locator("body").textContent().orEmpty())
-                }.lowercase()
+                val signInPageText =
+                    buildString {
+                        append(servicePage.title())
+                        append('\n')
+                        append(servicePage.locator("body").textContent().orEmpty())
+                    }.lowercase()
                 assertThatValue(signInPageText).contains("sign in with sso")
                 servicePage.locator("#oidc-sso-button").click()
                 servicePage.waitForTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS)
@@ -160,11 +163,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
                 .doesNotContain("auth.jorisjonkers.test/login")
                 .doesNotContain("error=")
 
-            val pageText = buildString {
-                append(servicePage.title())
-                append('\n')
-                append(servicePage.locator("body").textContent().orEmpty())
-            }.lowercase()
+            val pageText =
+                buildString {
+                    append(servicePage.title())
+                    append('\n')
+                    append(servicePage.locator("body").textContent().orEmpty())
+                }.lowercase()
             val authorizeRequests =
                 seenUrls.count {
                     it.contains("auth.jorisjonkers.test/api/oauth2/authorize") &&
@@ -226,11 +230,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
                 servicePage.evaluate("() => window.grafanaBootData?.user?.authenticatedBy || null") as String?
             val grafanaLogin =
                 servicePage.evaluate("() => window.grafanaBootData?.user?.login || null") as String?
-            val pageText = buildString {
-                append(servicePage.title())
-                append('\n')
-                append(servicePage.locator("body").textContent().orEmpty())
-            }.lowercase()
+            val pageText =
+                buildString {
+                    append(servicePage.title())
+                    append('\n')
+                    append(servicePage.locator("body").textContent().orEmpty())
+                }.lowercase()
             assertThatValue(
                 seenUrls.any { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") && it.contains("client_id=grafana") },
             ).isTrue()
@@ -278,11 +283,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
                 .doesNotContain("auth.jorisjonkers.test/login")
                 .doesNotContain("error=")
 
-            val pageText = buildString {
-                append(servicePage.title())
-                append('\n')
-                append(servicePage.locator("body").textContent().orEmpty())
-            }.lowercase()
+            val pageText =
+                buildString {
+                    append(servicePage.title())
+                    append('\n')
+                    append(servicePage.locator("body").textContent().orEmpty())
+                }.lowercase()
             assertThatValue(
                 seenUrls.none { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") },
             ).isTrue()
@@ -323,11 +329,12 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
                 .doesNotContain("/setup-database")
                 .doesNotContain("error=")
 
-            val pageText = buildString {
-                append(servicePage.title())
-                append('\n')
-                append(servicePage.locator("body").textContent().orEmpty())
-            }.lowercase()
+            val pageText =
+                buildString {
+                    append(servicePage.title())
+                    append('\n')
+                    append(servicePage.locator("body").textContent().orEmpty())
+                }.lowercase()
             assertThatValue(
                 seenUrls.none { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") },
             ).isTrue()

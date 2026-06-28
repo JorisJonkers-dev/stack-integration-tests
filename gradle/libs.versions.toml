@@ -1,0 +1,8 @@
+[versions]
+jorisjonkers-conventions = "0.5.0"
+
+[plugins]
+jorisjonkers-kotlin = { id = "dev.jorisjonkers.kotlin", version.ref = "jorisjonkers-conventions" }
+jorisjonkers-detekt = { id = "dev.jorisjonkers.detekt", version.ref = "jorisjonkers-conventions" }
+jorisjonkers-ktlint = { id = "dev.jorisjonkers.ktlint", version.ref = "jorisjonkers-conventions" }
+jorisjonkers-test-logging = { id = "dev.jorisjonkers.test-logging", version.ref = "jorisjonkers-conventions" }

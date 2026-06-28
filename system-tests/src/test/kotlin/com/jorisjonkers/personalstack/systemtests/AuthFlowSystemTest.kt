@@ -25,7 +25,8 @@ class AuthFlowSystemTest {
 
         // Verify session-based access to protected endpoints
         val session = TestHelper.sessionLoginAndGetCookie(user)
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", session)
             .`when`()
@@ -38,7 +39,8 @@ class AuthFlowSystemTest {
     fun `login without email confirmation returns 400`() {
         val username = "unconf_${UUID.randomUUID().toString().take(8)}"
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}""")
@@ -47,7 +49,8 @@ class AuthFlowSystemTest {
             .then()
             .statusCode(201)
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","password":"Test1234!"}""")
@@ -62,7 +65,8 @@ class AuthFlowSystemTest {
         val user = TestHelper.registerAndConfirm()
 
         val loginJson =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"${user.username}","password":"${user.password}"}""")
@@ -76,7 +80,8 @@ class AuthFlowSystemTest {
         val refreshToken = loginJson.getString("refreshToken")
         assertThat(refreshToken).isNotBlank()
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"refreshToken":"$refreshToken"}""")
@@ -91,7 +96,8 @@ class AuthFlowSystemTest {
         val user = "duptest_${UUID.randomUUID().toString().take(8)}"
         val body = """{"username":"$user","email":"$user@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}"""
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body(body)
@@ -100,7 +106,8 @@ class AuthFlowSystemTest {
             .then()
             .statusCode(201)
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body(body)
@@ -112,7 +119,8 @@ class AuthFlowSystemTest {
 
     @Test
     fun `verify endpoint redirects to login without token`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .redirects()
             .follow(false)
@@ -125,7 +133,8 @@ class AuthFlowSystemTest {
 
     @Test
     fun `other protected endpoints reject request without token`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/v1/users/me")

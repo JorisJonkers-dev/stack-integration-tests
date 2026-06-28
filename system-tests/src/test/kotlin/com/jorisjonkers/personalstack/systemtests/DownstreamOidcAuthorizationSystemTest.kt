@@ -36,7 +36,8 @@ class DownstreamOidcAuthorizationSystemTest {
         redirectUri: String,
         scope: String,
         requiresPkce: Boolean,
-    ) = TestHelper.givenApi()
+    ) = TestHelper
+        .givenApi()
         .baseUri("https://auth.jorisjonkers.test")
         .cookie("SESSION", sessionCookie)
         .accept("text/html")

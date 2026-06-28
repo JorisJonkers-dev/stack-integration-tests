@@ -13,7 +13,8 @@ class N8nOidcSystemTest {
         val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
         val response =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri("https://n8n.jorisjonkers.test")
                 .cookie("SESSION", adminSession.sessionCookie)
                 .redirects()

@@ -13,7 +13,8 @@ class RabbitMqOidcSystemTest {
     fun `rabbitmq management serves the ui for service users once oidc completes`() {
         val rabbitMqSession = TestHelper.registerConfirmGrantAndGetSession("RABBITMQ")
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri("https://rabbitmq.jorisjonkers.test")
             .cookie("SESSION", rabbitMqSession.sessionCookie)
             .`when`()
@@ -28,7 +29,8 @@ class RabbitMqOidcSystemTest {
     fun `rabbitmq management serves the ui for admin users`() {
         val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri("https://rabbitmq.jorisjonkers.test")
             .cookie("SESSION", adminSession.sessionCookie)
             .`when`()
