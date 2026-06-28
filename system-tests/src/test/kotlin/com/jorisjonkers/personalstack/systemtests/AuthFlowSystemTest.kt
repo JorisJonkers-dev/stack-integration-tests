@@ -43,8 +43,17 @@ class AuthFlowSystemTest {
             .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}""")
-            .`when`()
+            .body(
+                """
+                {
+                  "username":"$username",
+                  "email":"$username@test.com",
+                  "firstName":"Test",
+                  "lastName":"User",
+                  "password":"Test1234!"
+                }
+                """.trimIndent(),
+            ).`when`()
             .post("/api/v1/users/register")
             .then()
             .statusCode(201)
@@ -94,7 +103,16 @@ class AuthFlowSystemTest {
     @Test
     fun `duplicate registration returns 400`() {
         val user = "duptest_${UUID.randomUUID().toString().take(8)}"
-        val body = """{"username":"$user","email":"$user@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}"""
+        val body =
+            """
+            {
+              "username":"$user",
+              "email":"$user@test.com",
+              "firstName":"Test",
+              "lastName":"User",
+              "password":"Test1234!"
+            }
+            """.trimIndent()
 
         TestHelper
             .givenApi()

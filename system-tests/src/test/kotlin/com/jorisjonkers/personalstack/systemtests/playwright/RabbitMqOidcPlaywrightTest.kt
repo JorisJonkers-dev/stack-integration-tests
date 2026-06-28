@@ -64,7 +64,10 @@ class RabbitMqOidcPlaywrightTest : PlaywrightTestBase() {
             seenUrls.any { it.contains("auth.jorisjonkers.test/.well-known/openid-configuration") },
         ).isTrue()
         assertThatValue(
-            seenUrls.any { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") && it.contains("client_id=rabbitmq") },
+            seenUrls.any { url ->
+                url.contains("auth.jorisjonkers.test/api/oauth2/authorize") &&
+                    url.contains("client_id=rabbitmq")
+            },
         ).isTrue()
         assertThatValue(
             seenUrls.any { it.contains("rabbitmq.jorisjonkers.test/js/oidc-oauth/login-callback.html?code=") },

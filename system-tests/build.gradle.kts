@@ -24,6 +24,7 @@ dependencies {
 
 val testSourceSet = extensions.getByType(SourceSetContainer::class.java).getByName("test")
 val imageTagsInput = providers.gradleProperty("imageTags").orElse(providers.environmentVariable("IMAGE_TAGS"))
+val hasImageTagsInput = imageTagsInput.map { it.isNotBlank() }.orElse(false)
 val supportedImageTagServices =
     setOf(
         "auth-api",
@@ -77,6 +78,7 @@ fun Test.configureStructuralTestTask() {
 fun Test.configureSystemTestTask() {
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.runtimeClasspath
+    onlyIf("IMAGE_TAGS is set") { hasImageTagsInput.get() }
     useJUnitPlatform {
         includeTags("system")
     }

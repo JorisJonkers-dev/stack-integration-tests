@@ -65,7 +65,15 @@ object TestHelper {
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body(
-                    """{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"$password"}""",
+                    """
+                    {
+                      "username":"$username",
+                      "email":"$email",
+                      "firstName":"Test",
+                      "lastName":"User",
+                      "password":"$password"
+                    }
+                    """.trimIndent(),
                 ).`when`()
                 .post("/api/v1/users/register")
                 .then()

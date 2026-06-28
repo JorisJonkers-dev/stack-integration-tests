@@ -50,7 +50,10 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
                 }.lowercase()
             assertThatValue(seenUrls.any { it.contains("/v1/auth/oidc/oidc/auth_url") }).isTrue()
             assertThatValue(
-                seenUrls.any { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") && it.contains("client_id=vault") },
+                seenUrls.any { url ->
+                    url.contains("auth.jorisjonkers.test/api/oauth2/authorize") &&
+                        url.contains("client_id=vault")
+                },
             ).isTrue()
             assertThatValue(pageText).doesNotContain("sign in to vault")
             assertThatValue(pageText).doesNotContain("error fetching role")
@@ -237,7 +240,10 @@ class MainSiteServiceLaunchTest : PlaywrightTestBase() {
                     append(servicePage.locator("body").textContent().orEmpty())
                 }.lowercase()
             assertThatValue(
-                seenUrls.any { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") && it.contains("client_id=grafana") },
+                seenUrls.any { url ->
+                    url.contains("auth.jorisjonkers.test/api/oauth2/authorize") &&
+                        url.contains("client_id=grafana")
+                },
             ).isTrue()
             assertThatValue(
                 seenUrls.any { it.contains("grafana.jorisjonkers.test/login/generic_oauth?code=") },

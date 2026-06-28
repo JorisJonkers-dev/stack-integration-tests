@@ -29,8 +29,17 @@ class RegistrationFlowSystemTest {
             .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"$password"}""")
-            .`when`()
+            .body(
+                """
+                {
+                  "username":"$username",
+                  "email":"$email",
+                  "firstName":"Test",
+                  "lastName":"User",
+                  "password":"$password"
+                }
+                """.trimIndent(),
+            ).`when`()
             .post("/api/v1/users/register")
             .then()
             .statusCode(201)
@@ -144,8 +153,17 @@ class RegistrationFlowSystemTest {
             .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}""")
-            .`when`()
+            .body(
+                """
+                {
+                  "username":"$username",
+                  "email":"$username@test.com",
+                  "firstName":"Test",
+                  "lastName":"User",
+                  "password":"Test1234!"
+                }
+                """.trimIndent(),
+            ).`when`()
             .post("/api/v1/users/register")
             .then()
             .statusCode(201)
@@ -170,8 +188,17 @@ class RegistrationFlowSystemTest {
             .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}""")
-            .`when`()
+            .body(
+                """
+                {
+                  "username":"$username",
+                  "email":"$email",
+                  "firstName":"Test",
+                  "lastName":"User",
+                  "password":"Test1234!"
+                }
+                """.trimIndent(),
+            ).`when`()
             .post("/api/v1/users/register")
             .then()
             .statusCode(201)

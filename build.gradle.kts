@@ -1,3 +1,4 @@
 plugins {
     base
+    `maven-publish`
 }
