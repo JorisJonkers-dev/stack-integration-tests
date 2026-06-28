@@ -1,16 +1,11 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
-import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordConfig
-import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerator
 import io.restassured.http.ContentType
-import org.apache.commons.codec.binary.Base32
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 /**
  * System test: full TOTP two-factor authentication flow.
@@ -29,7 +24,8 @@ class TotpFlowSystemTest {
         TestHelper.registerAndConfirm(username = username, password = "TotpTest1!")
 
     private fun login(username: String): io.restassured.path.json.JsonPath =
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","password":"TotpTest1!"}""")
@@ -69,7 +65,8 @@ class TotpFlowSystemTest {
 
         // Step 2: Enroll TOTP
         val enrollJson =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .cookie("XSRF-TOKEN", session.csrfToken)
@@ -88,7 +85,8 @@ class TotpFlowSystemTest {
 
         // Step 3: Verify TOTP (enables it on the account)
         val verifyCode = generateTotpCode(secret)
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .cookie("SESSION", session.sessionCookie)
@@ -111,7 +109,8 @@ class TotpFlowSystemTest {
         val challengeCode = generateTotpCode(secret)
 
         val challengeJson =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"totpChallengeToken":"$challengeToken","code":"$challengeCode"}""")
@@ -128,7 +127,8 @@ class TotpFlowSystemTest {
 
         // Step 6: Verify session-based access works for forward-auth
         val totpSessionCookie = TestHelper.sessionLoginAndGetCookie(user, TestHelper.generateFreshTotpCode(secret))
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", totpSessionCookie)
             .`when`()
@@ -147,7 +147,8 @@ class TotpFlowSystemTest {
 
         // Enroll + verify TOTP
         val secret =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .cookie("SESSION", session.sessionCookie)
                 .cookie("XSRF-TOKEN", session.csrfToken)
@@ -160,7 +161,8 @@ class TotpFlowSystemTest {
                 .jsonPath()
                 .getString("secret")
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .cookie("SESSION", session.sessionCookie)
@@ -176,7 +178,8 @@ class TotpFlowSystemTest {
         val challengeToken = login(username).getString("totpChallengeToken")
 
         // Submit wrong code
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"totpChallengeToken":"$challengeToken","code":"000000"}""")
@@ -188,7 +191,8 @@ class TotpFlowSystemTest {
 
     @Test
     fun `TOTP enrollment requires authentication`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .post("/api/v1/totp/enroll")

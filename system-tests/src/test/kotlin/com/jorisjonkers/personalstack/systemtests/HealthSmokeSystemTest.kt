@@ -60,7 +60,10 @@ class HealthSmokeSystemTest {
         val components: Map<String, Any?> =
             payload.getMap<String, Any?>("components")
                 ?: payload.getMap("details")
-                ?: error("$service /health missing components + details — show-details may be wrong: ${body.body().asString()}")
+                ?: error(
+                    "$service /health missing components + details; " +
+                        "show-details may be wrong: ${body.body().asString()}",
+                )
 
         val down =
             components.entries

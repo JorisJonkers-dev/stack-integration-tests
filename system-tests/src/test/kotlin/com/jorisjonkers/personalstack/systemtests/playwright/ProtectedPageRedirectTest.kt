@@ -42,7 +42,9 @@ class ProtectedPageRedirectTest : PlaywrightTestBase() {
 
         page.waitForURL(
             { it.contains("login") },
-            com.microsoft.playwright.Page.WaitForURLOptions().setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
+            com.microsoft.playwright.Page
+                .WaitForURLOptions()
+                .setTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS),
         )
     }
 

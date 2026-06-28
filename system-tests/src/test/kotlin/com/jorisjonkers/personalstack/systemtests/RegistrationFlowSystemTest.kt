@@ -25,11 +25,21 @@ class RegistrationFlowSystemTest {
         val password = "Test1234!"
 
         // Step 1: Register
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"$password"}""")
-            .`when`()
+            .body(
+                """
+                {
+                  "username":"$username",
+                  "email":"$email",
+                  "firstName":"Test",
+                  "lastName":"User",
+                  "password":"$password"
+                }
+                """.trimIndent(),
+            ).`when`()
             .post("/api/v1/users/register")
             .then()
             .statusCode(201)
@@ -38,7 +48,8 @@ class RegistrationFlowSystemTest {
         val confirmToken = TestHelper.getConfirmationTokenFromDb(username)
         assertThat(confirmToken).isNotBlank()
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/v1/auth/confirm-email?token=$confirmToken")
@@ -47,7 +58,8 @@ class RegistrationFlowSystemTest {
 
         // Step 3: Session login
         val sessionResponse =
-            TestHelper.givenApi()
+            TestHelper
+                .givenApi()
                 .baseUri(authBaseUrl)
                 .contentType(ContentType.JSON)
                 .body("""{"username":"$username","password":"$password"}""")
@@ -59,7 +71,8 @@ class RegistrationFlowSystemTest {
         assertThat(sessionCookie).isNotBlank()
 
         // Step 4: Verify session works
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", sessionCookie)
             .`when`()
@@ -71,10 +84,17 @@ class RegistrationFlowSystemTest {
     @Test
     fun `registration with duplicate username returns 400`() {
         val username = "dup_user_${UUID.randomUUID().toString().take(8)}"
-        val body1 = """{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}"""
-        val body2 = """{"username":"$username","email":"${username}_2@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}"""
+        val body1 =
+            """
+            {"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}
+            """.trimIndent()
+        val body2 =
+            """
+            {"username":"$username","email":"${username}_2@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}
+            """.trimIndent()
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body(body1)
@@ -83,7 +103,8 @@ class RegistrationFlowSystemTest {
             .then()
             .statusCode(201)
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body(body2)
@@ -103,7 +124,8 @@ class RegistrationFlowSystemTest {
             8,
         )}","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}"""
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body(body1)
@@ -112,7 +134,8 @@ class RegistrationFlowSystemTest {
             .then()
             .statusCode(201)
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body(body2)
@@ -126,16 +149,27 @@ class RegistrationFlowSystemTest {
     fun `login without email confirmation returns 400`() {
         val username = "unconf_reg_${UUID.randomUUID().toString().take(8)}"
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$username@test.com","firstName":"Test","lastName":"User","password":"Test1234!"}""")
-            .`when`()
+            .body(
+                """
+                {
+                  "username":"$username",
+                  "email":"$username@test.com",
+                  "firstName":"Test",
+                  "lastName":"User",
+                  "password":"Test1234!"
+                }
+                """.trimIndent(),
+            ).`when`()
             .post("/api/v1/users/register")
             .then()
             .statusCode(201)
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","password":"Test1234!"}""")
@@ -150,11 +184,21 @@ class RegistrationFlowSystemTest {
         val username = "resend_${UUID.randomUUID().toString().take(8)}"
         val email = "$username@systemtest.example.com"
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}""")
-            .`when`()
+            .body(
+                """
+                {
+                  "username":"$username",
+                  "email":"$email",
+                  "firstName":"Test",
+                  "lastName":"User",
+                  "password":"Test1234!"
+                }
+                """.trimIndent(),
+            ).`when`()
             .post("/api/v1/users/register")
             .then()
             .statusCode(201)
@@ -163,7 +207,8 @@ class RegistrationFlowSystemTest {
         assertThat(firstToken).isNotBlank()
 
         // Resend confirmation
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"email":"$email"}""")
@@ -179,14 +224,16 @@ class RegistrationFlowSystemTest {
             .isNotEqualTo(firstToken)
 
         // Confirm with new token and login
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/v1/auth/confirm-email?token=$secondToken")
             .then()
             .statusCode(200)
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .contentType(ContentType.JSON)
             .body("""{"username":"$username","password":"Test1234!"}""")

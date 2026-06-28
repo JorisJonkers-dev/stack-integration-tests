@@ -14,7 +14,8 @@ class ForwardAuthRedirectSystemTest {
 
     @Test
     fun `verify endpoint returns 302 redirect to login when unauthenticated`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .redirects()
             .follow(false)
@@ -27,7 +28,8 @@ class ForwardAuthRedirectSystemTest {
 
     @Test
     fun `verify endpoint includes original URL from forwarded headers in redirect`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .redirects()
             .follow(false)
@@ -45,7 +47,8 @@ class ForwardAuthRedirectSystemTest {
     fun `verify endpoint does not redirect with valid session`() {
         val session = TestHelper.registerConfirmAndGetSession()
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .cookie("SESSION", session.sessionCookie)
             .`when`()

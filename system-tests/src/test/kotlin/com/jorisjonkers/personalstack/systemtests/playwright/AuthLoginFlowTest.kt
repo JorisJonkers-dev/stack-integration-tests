@@ -45,11 +45,21 @@ class AuthLoginFlowTest : PlaywrightTestBase() {
         val username = uniqueUsername("unconf")
         val email = "$username@systemtest.example.com"
 
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(TestHelper.authBaseUrl)
             .contentType(ContentType.JSON)
-            .body("""{"username":"$username","email":"$email","firstName":"Test","lastName":"User","password":"Test1234!"}""")
-            .post("/api/v1/users/register")
+            .body(
+                """
+                {
+                  "username":"$username",
+                  "email":"$email",
+                  "firstName":"Test",
+                  "lastName":"User",
+                  "password":"Test1234!"
+                }
+                """.trimIndent(),
+            ).post("/api/v1/users/register")
             .then()
             .statusCode(201)
 

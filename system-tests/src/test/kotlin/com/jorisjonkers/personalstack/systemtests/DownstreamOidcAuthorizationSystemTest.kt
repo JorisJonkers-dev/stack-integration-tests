@@ -18,8 +18,18 @@ class DownstreamOidcAuthorizationSystemTest {
         @JvmStatic
         fun oidcClients(): Stream<Arguments> =
             Stream.of(
-                Arguments.of("grafana", "https://grafana.jorisjonkers.test/login/generic_oauth", "openid profile email", false),
-                Arguments.of("vault", "https://vault.jorisjonkers.test/ui/vault/auth/oidc/oidc/callback", "openid profile email", false),
+                Arguments.of(
+                    "grafana",
+                    "https://grafana.jorisjonkers.test/login/generic_oauth",
+                    "openid profile email",
+                    false,
+                ),
+                Arguments.of(
+                    "vault",
+                    "https://vault.jorisjonkers.test/ui/vault/auth/oidc/oidc/callback",
+                    "openid profile email",
+                    false,
+                ),
                 Arguments.of("n8n", "https://n8n.jorisjonkers.test/auth/oidc/callback", "openid profile email", false),
                 Arguments.of(
                     "rabbitmq",
@@ -36,7 +46,8 @@ class DownstreamOidcAuthorizationSystemTest {
         redirectUri: String,
         scope: String,
         requiresPkce: Boolean,
-    ) = TestHelper.givenApi()
+    ) = TestHelper
+        .givenApi()
         .baseUri("https://auth.jorisjonkers.test")
         .cookie("SESSION", sessionCookie)
         .accept("text/html")

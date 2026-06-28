@@ -3,9 +3,9 @@ package com.jorisjonkers.personalstack.systemtests.playwright
 import com.jorisjonkers.personalstack.systemtests.TestHelper
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.PlaywrightException
-import org.assertj.core.api.Assertions.assertThat as assertThatValue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.assertj.core.api.Assertions.assertThat as assertThatValue
 
 @Tag("system")
 class RabbitMqOidcPlaywrightTest : PlaywrightTestBase() {
@@ -53,17 +53,21 @@ class RabbitMqOidcPlaywrightTest : PlaywrightTestBase() {
             .doesNotContain("error=")
             .doesNotContain("login-callback.html?error")
 
-        val pageText = buildString {
-            append(page.title())
-            append('\n')
-            append(page.locator("body").textContent().orEmpty())
-        }.lowercase()
+        val pageText =
+            buildString {
+                append(page.title())
+                append('\n')
+                append(page.locator("body").textContent().orEmpty())
+            }.lowercase()
 
         assertThatValue(
             seenUrls.any { it.contains("auth.jorisjonkers.test/.well-known/openid-configuration") },
         ).isTrue()
         assertThatValue(
-            seenUrls.any { it.contains("auth.jorisjonkers.test/api/oauth2/authorize") && it.contains("client_id=rabbitmq") },
+            seenUrls.any { url ->
+                url.contains("auth.jorisjonkers.test/api/oauth2/authorize") &&
+                    url.contains("client_id=rabbitmq")
+            },
         ).isTrue()
         assertThatValue(
             seenUrls.any { it.contains("rabbitmq.jorisjonkers.test/js/oidc-oauth/login-callback.html?code=") },

@@ -11,7 +11,8 @@ class HealthCheckSystemTest {
 
     @Test
     fun `auth-api health endpoint responds`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/actuator/health")
@@ -21,7 +22,8 @@ class HealthCheckSystemTest {
 
     @Test
     fun `auth-api v1 health endpoint responds`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/api/v1/health")
@@ -33,7 +35,8 @@ class HealthCheckSystemTest {
 
     @Test
     fun `auth-api oidc discovery is accessible`() {
-        TestHelper.givenApi()
+        TestHelper
+            .givenApi()
             .baseUri(authBaseUrl)
             .`when`()
             .get("/.well-known/openid-configuration")
