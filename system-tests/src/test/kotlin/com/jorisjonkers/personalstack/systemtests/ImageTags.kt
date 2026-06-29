@@ -11,6 +11,7 @@ object ImageTags {
             "agents-ui",
             "agent-runtime",
         )
+    private val serviceAliases = mapOf("knowledge" to "knowledge-api")
 
     fun fromSystemProperties(): ImageTagSet =
         parse(
@@ -26,21 +27,47 @@ object ImageTags {
             raw
                 .trim()
                 .split(Regex("\\s+"))
-                .associate { entry ->
+                .mapNotNull { entry ->
                     val parts = entry.split("=", limit = 2)
-                    require(parts.size == 2 && parts[0].isNotBlank() && parts[1].isNotBlank()) {
+                    val explicitService = parts.size == 2
+                    val service = if (explicitService) parts[0] else serviceFromImageRef(entry)
+                    val tag = if (explicitService) parts[1] else entry
+                    require(service.isNotBlank() && tag.isNotBlank()) {
                         "Invalid IMAGE_TAGS entry: $entry"
                     }
-                    val service = parts[0]
-                    val tag = parts[1]
-                    require(service in supportedServices) { "Unsupported IMAGE_TAGS service: $service" }
-                    require(tag != "latest" && !tag.endsWith(":latest")) {
+                    require(explicitService || hasExplicitImageVersion(tag)) {
+                        "IMAGE_TAGS entry must use an explicit image tag or digest: $tag"
+                    }
+                    require(explicitService || !isLatestImageRef(tag)) {
+                        "IMAGE_TAGS entry must use an explicit non-latest tag: $tag"
+                    }
+                    if (service !in supportedServices) {
+                        require(!explicitService) { "Unsupported IMAGE_TAGS service: $service" }
+                        return@mapNotNull null
+                    }
+                    require(!isLatestImageRef(tag)) {
                         "IMAGE_TAGS entry for $service must use an explicit non-latest tag"
                     }
                     service to tag
-                }
+                }.toMap()
 
         return ImageTagSet(parsed)
+    }
+
+    private fun serviceFromImageRef(ref: String): String {
+        val imageName = ref.substringBefore("@").substringAfterLast("/").substringBefore(":")
+        return serviceAliases[imageName] ?: imageName
+    }
+
+    private fun hasExplicitImageVersion(ref: String): Boolean {
+        val imagePath = ref.substringBefore("@").substringAfterLast("/")
+        return ref.contains("@sha256:") || imagePath.contains(":")
+    }
+
+    private fun isLatestImageRef(ref: String): Boolean {
+        val imagePath = ref.substringBefore("@").substringAfterLast("/")
+        val imageTag = imagePath.substringAfter(":", missingDelimiterValue = "")
+        return ref == "latest" || imagePath == "latest" || imageTag == "latest"
     }
 }
 

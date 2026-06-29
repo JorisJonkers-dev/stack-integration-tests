@@ -1,5 +1,5 @@
 [versions]
-jorisjonkers-conventions = "0.5.0"
+jorisjonkers-conventions = "0.5.1"
 
 [plugins]
 jorisjonkers-kotlin = { id = "dev.jorisjonkers.kotlin", version.ref = "jorisjonkers-conventions" }

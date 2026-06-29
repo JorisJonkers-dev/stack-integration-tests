@@ -7,8 +7,11 @@ usage() {
   cat <<'USAGE'
 Usage: validate-image-tags.sh [--require-all] [IMAGE_TAGS]
 
-Validates whitespace-separated service=tag entries. Tags must be explicit;
-"latest" and tags ending in ":latest" are rejected.
+Validates whitespace-separated service=tag entries or exact image refs emitted by
+"deploy-config-schema lock images --format image-tags". Tags must be explicit;
+"latest" and refs ending in ":latest" are rejected. Unsupported raw image refs
+are ignored because deployment.lock.yml also contains third-party images that
+this test suite does not exercise.
 USAGE
 }
 
@@ -57,6 +60,39 @@ contains_service() {
   return 1
 }
 
+service_from_image_ref() {
+  local ref="$1"
+  local without_digest="${ref%%@*}"
+  local image_path="${without_digest##*/}"
+  local image_name="${image_path%%:*}"
+
+  case "$image_name" in
+    knowledge)
+      echo "knowledge-api"
+      ;;
+    *)
+      echo "$image_name"
+      ;;
+  esac
+}
+
+has_explicit_image_version() {
+  local ref="$1"
+  local without_digest="${ref%%@*}"
+  local image_path="${without_digest##*/}"
+
+  [[ "$ref" == *@sha256:* || "$image_path" == *:* ]]
+}
+
+is_latest_ref() {
+  local ref="$1"
+  local without_digest="${ref%%@*}"
+  local image_path="${without_digest##*/}"
+  local image_tag="${image_path#*:}"
+
+  [[ "$ref" == "latest" || "$image_path" == "latest" || ( "$image_path" == *:* && "$image_tag" == "latest" ) ]]
+}
+
 if [[ -z "$raw_tags" ]]; then
   echo "IMAGE_TAGS is required" >&2
   exit 1
@@ -64,19 +100,33 @@ fi
 
 declare -A seen=()
 
-read -r -a entries <<<"$raw_tags"
+read -r -a entries <<<"$(printf '%s\n' "$raw_tags" | tr '\n' ' ')"
 for entry in "${entries[@]}"; do
-  if [[ ! "$entry" =~ ^([a-z0-9][a-z0-9-]*)=(.+)$ ]]; then
-    echo "invalid IMAGE_TAGS entry: $entry" >&2
-    exit 1
-  fi
+  if [[ "$entry" =~ ^([a-z0-9][a-z0-9-]*)=(.+)$ ]]; then
+    service="${BASH_REMATCH[1]}"
+    tag="${BASH_REMATCH[2]}"
 
-  service="${BASH_REMATCH[1]}"
-  tag="${BASH_REMATCH[2]}"
+    if ! contains_service "$service"; then
+      echo "unsupported IMAGE_TAGS service: $service" >&2
+      exit 1
+    fi
+  else
+    tag="$entry"
+    service="$(service_from_image_ref "$tag")"
 
-  if ! contains_service "$service"; then
-    echo "unsupported IMAGE_TAGS service: $service" >&2
-    exit 1
+    if ! has_explicit_image_version "$tag"; then
+      echo "IMAGE_TAGS entry must use an explicit image tag or digest: $tag" >&2
+      exit 1
+    fi
+
+    if is_latest_ref "$tag"; then
+      echo "IMAGE_TAGS entry must not use latest: $tag" >&2
+      exit 1
+    fi
+
+    if ! contains_service "$service"; then
+      continue
+    fi
   fi
 
   if [[ -n "${seen[$service]:-}" ]]; then
@@ -84,7 +134,7 @@ for entry in "${entries[@]}"; do
     exit 1
   fi
 
-  if [[ -z "$tag" || "$tag" == "latest" || "$tag" == *":latest" ]]; then
+  if [[ -z "$tag" ]] || is_latest_ref "$tag"; then
     echo "IMAGE_TAGS entry for $service must use an explicit non-latest tag" >&2
     exit 1
   fi

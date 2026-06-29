@@ -4,14 +4,14 @@ on:
   workflow_call:
     inputs:
       image-tags:
-        description: Space-separated service=image-tag pins to test.
+        description: Space or newline-separated service=tag pins or exact image refs from deploy-config-schema lock images.
         required: false
         default: ''
         type: string
   workflow_dispatch:
     inputs:
       image-tags:
-        description: Space-separated service=image-tag pins to test.
+        description: Space or newline-separated service=tag pins or exact image refs from deploy-config-schema lock images.
         required: false
         default: ''
         type: string
@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate image tag contract
+      - name: Validate image ref contract
         if: ${{ inputs.image-tags != '' }}
         env:
           IMAGE_TAGS: ${{ inputs.image-tags }}
@@ -35,7 +35,7 @@ jobs:
 
       - name: Skip absent image tags
         if: ${{ inputs.image-tags == '' }}
-        run: echo "IMAGE_TAGS not provided; live system tests will be skipped."
+        run: echo 'IMAGE_TAGS not provided; live system tests will be skipped.'
 
   non-playwright:
     name: Non-Playwright System Tests
@@ -48,9 +48,9 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: '21'
 
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Run non-Playwright tests
         env:
@@ -74,9 +74,9 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: '21'
 
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Run Playwright shard
         env:

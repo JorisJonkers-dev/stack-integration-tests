@@ -20,11 +20,11 @@ These tests cover the deployed service set:
 # Compile and run structural/unit checks
 ./gradlew :system-tests:check
 
-# Validate explicit image tags
-IMAGE_TAGS='auth-api=v0.1.0 auth-ui=v0.1.0 home-portal=v0.1.0 knowledge-api=v0.1.0 agents-api=v0.16.0 agents-ui=v0.16.0 agent-runtime=v0.16.0' \
+# Validate exact image refs from a deployment lock
+IMAGE_TAGS="$(deploy-config-schema lock images --lock deployment.lock.yml --format image-tags)" \
   scripts/validate-image-tags.sh --require-all
 
 # Run system suites against an already-started stack
-IMAGE_TAGS='auth-api=v0.1.0 auth-ui=v0.1.0 home-portal=v0.1.0 knowledge-api=v0.1.0 agents-api=v0.16.0 agents-ui=v0.16.0 agent-runtime=v0.16.0' \
+IMAGE_TAGS="$(deploy-config-schema lock images --lock deployment.lock.yml --format image-tags)" \
   ./gradlew :system-tests:testNonPlaywright :system-tests:testPlaywright
 ```
