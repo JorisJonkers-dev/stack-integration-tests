@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.2.0...v0.3.0) (2026-06-29)
+
+
+### Features
+
+* consume public system test harness ([#5](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/5)) ([6a80b6f](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/6a80b6f2811af5a6430a5adb62cfcf9b920da866))
+
 ## [0.2.0](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.1.0...v0.2.0) (2026-06-28)
 
 
