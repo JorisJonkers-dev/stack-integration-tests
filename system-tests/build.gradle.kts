@@ -1,4 +1,3 @@
-import org.gradle.api.GradleException
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.testing.Test
 
@@ -10,6 +9,7 @@ plugins {
 }
 
 dependencies {
+    testImplementation(libs.kotlin.commons.system.test.harness)
     testImplementation("io.rest-assured:rest-assured:6.0.0")
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -23,67 +23,12 @@ dependencies {
 }
 
 val testSourceSet = extensions.getByType(SourceSetContainer::class.java).getByName("test")
-val imageTagsInput = providers.gradleProperty("imageTags").orElse(providers.environmentVariable("IMAGE_TAGS"))
+val imageTagsInput =
+    providers
+        .gradleProperty("imageTags")
+        .orElse(providers.systemProperty("test.image-tags"))
+        .orElse(providers.environmentVariable("IMAGE_TAGS"))
 val hasImageTagsInput = imageTagsInput.map { it.isNotBlank() }.orElse(false)
-val supportedImageTagServices =
-    setOf(
-        "auth-api",
-        "auth-ui",
-        "home-portal",
-        "knowledge-api",
-        "agents-api",
-        "agents-ui",
-        "agent-runtime",
-    )
-
-fun parseImageTags(raw: String): Map<String, String> {
-    val entries = raw.trim().split(Regex("\\s+")).filter(String::isNotBlank)
-    return entries
-        .mapNotNull { entry ->
-            val parts = entry.split("=", limit = 2)
-            val explicitService = parts.size == 2
-            val service = if (explicitService) parts[0] else serviceFromImageRef(entry)
-            val tag = if (explicitService) parts[1] else entry
-            if (service.isBlank() || tag.isBlank()) {
-                throw GradleException("Invalid IMAGE_TAGS entry: $entry")
-            }
-            if (!explicitService && !hasExplicitImageVersion(tag)) {
-                throw GradleException("IMAGE_TAGS entry must use an explicit image tag or digest: $tag")
-            }
-            if (!explicitService && isLatestImageRef(tag)) {
-                throw GradleException("IMAGE_TAGS entry must not use latest: $tag")
-            }
-            if (service !in supportedImageTagServices) {
-                if (explicitService) {
-                    throw GradleException("Unsupported IMAGE_TAGS service: $service")
-                }
-                return@mapNotNull null
-            }
-            if (isLatestImageRef(tag)) {
-                throw GradleException("IMAGE_TAGS entry for $service must not use latest")
-            }
-            service to tag
-        }.toMap()
-}
-
-fun serviceFromImageRef(ref: String): String {
-    val imageName = ref.substringBefore("@").substringAfterLast("/").substringBefore(":")
-    return when (imageName) {
-        "knowledge" -> "knowledge-api"
-        else -> imageName
-    }
-}
-
-fun hasExplicitImageVersion(ref: String): Boolean {
-    val imagePath = ref.substringBefore("@").substringAfterLast("/")
-    return ref.contains("@sha256:") || imagePath.contains(":")
-}
-
-fun isLatestImageRef(ref: String): Boolean {
-    val imagePath = ref.substringBefore("@").substringAfterLast("/")
-    val imageTag = imagePath.substringAfter(":", missingDelimiterValue = "")
-    return ref == "latest" || imagePath == "latest" || imageTag == "latest"
-}
 
 fun Test.forwardCommonSystemProperties() {
     gradle.startParameter.systemPropertiesArgs
@@ -92,9 +37,6 @@ fun Test.forwardCommonSystemProperties() {
 
     imageTagsInput.orNull?.takeIf { it.isNotBlank() }?.let { raw ->
         systemProperty("test.image-tags", raw)
-        parseImageTags(raw).forEach { (service, tag) ->
-            systemProperty("test.image.$service.tag", tag)
-        }
     }
 }
 

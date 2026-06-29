@@ -1,28 +1,15 @@
 package com.jorisjonkers.personalstack.systemtests.playwright
 
+import com.jorisjonkers.personalstack.common.test.system.PlaywrightStackTestBase
 import com.jorisjonkers.personalstack.systemtests.TestHelper
-import com.microsoft.playwright.Browser
-import com.microsoft.playwright.BrowserContext
-import com.microsoft.playwright.BrowserType
-import com.microsoft.playwright.Page
-import com.microsoft.playwright.Playwright
-import com.microsoft.playwright.PlaywrightException
 import com.microsoft.playwright.options.Cookie
 import com.microsoft.playwright.options.SameSiteAttribute
 import io.restassured.http.ContentType
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.extension.ExtendWith
 import java.util.UUID
 
 internal const val MAX_PLAYWRIGHT_TIMEOUT_MS = 5_000.0
 
-@ExtendWith(PlaywrightShardCondition::class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-abstract class PlaywrightTestBase {
+abstract class PlaywrightTestBase : PlaywrightStackTestBase() {
     companion object {
         val AUTH_UI_URL: String =
             System.getProperty("test.auth-ui.url", "https://auth.jorisjonkers.test")
@@ -31,66 +18,7 @@ abstract class PlaywrightTestBase {
                 ?: System.getProperty("test.app-ui.url", "https://jorisjonkers.test")
     }
 
-    private lateinit var playwright: Playwright
-    private lateinit var browser: Browser
-    protected lateinit var context: BrowserContext
-    protected lateinit var page: Page
-
-    @BeforeAll
-    fun launchBrowser() {
-        playwright = Playwright.create()
-        browser =
-            playwright.chromium().launch(
-                BrowserType.LaunchOptions().setHeadless(true),
-            )
-    }
-
-    @AfterAll
-    fun closeBrowser() {
-        browser.close()
-        playwright.close()
-    }
-
-    @BeforeEach
-    fun createContext() {
-        context =
-            browser.newContext(
-                Browser.NewContextOptions().setIgnoreHTTPSErrors(true),
-            )
-        context.setDefaultTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS)
-        context.setDefaultNavigationTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS)
-        page = context.newPage()
-        page.setDefaultTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS)
-        page.setDefaultNavigationTimeout(MAX_PLAYWRIGHT_TIMEOUT_MS)
-    }
-
-    @AfterEach
-    fun closeContext() {
-        context.close()
-    }
-
-    protected fun navigateWithRetry(
-        url: String,
-        attempts: Int = 3,
-    ) {
-        var lastException: PlaywrightException? = null
-        repeat(attempts) { attempt ->
-            try {
-                page.navigate(url)
-                return
-            } catch (e: PlaywrightException) {
-                if (e.message?.contains("ERR_CONNECTION_REFUSED") == true) {
-                    lastException = e
-                    if (attempt < attempts - 1) {
-                        Thread.sleep(2000L * (attempt + 1))
-                    }
-                } else {
-                    throw e
-                }
-            }
-        }
-        throw lastException!!
-    }
+    override val defaultTimeoutMillis: Double = MAX_PLAYWRIGHT_TIMEOUT_MS
 
     protected fun uniqueUsername(prefix: String = "pw"): String = "${prefix}_${UUID.randomUUID().toString().take(8)}"
 

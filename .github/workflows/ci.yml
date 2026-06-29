@@ -14,7 +14,7 @@ permissions:
 jobs:
   jvm:
     name: JVM
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.8.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.9.0
     with:
       lint-gradle-args: :system-tests:detekt :system-tests:ktlintCheck
       test-gradle-args: :system-tests:check
@@ -23,22 +23,22 @@ jobs:
 
   image-tags:
     name: IMAGE_TAGS Contract
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Validate required image refs
-        env:
-          IMAGE_TAGS: >-
-            ghcr.io/jorisjonkers-dev/auth-api:v0.1.0
-            ghcr.io/jorisjonkers-dev/auth-ui:v0.1.0
-            ghcr.io/jorisjonkers-dev/home-portal:v0.1.0
-            ghcr.io/jorisjonkers-dev/knowledge-api:v0.1.0
-            ghcr.io/jorisjonkers-dev/agents-api:v0.16.0
-            ghcr.io/jorisjonkers-dev/agents-ui:v0.16.0
-            ghcr.io/jorisjonkers-dev/agent-runtime:v0.16.0
-            ghcr.io/twin/gatus:v5.20.0
-        run: scripts/validate-image-tags.sh --require-all
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.9.0
+    with:
+      lint-gradle-args: help
+      test-gradle-args: >-
+        :system-tests:test
+        --tests com.jorisjonkers.personalstack.systemtests.ImageTagsTest
+        -Dtest.image-tags='ghcr.io/jorisjonkers-dev/auth-api:v0.1.0
+        ghcr.io/jorisjonkers-dev/auth-ui:v0.1.0
+        ghcr.io/jorisjonkers-dev/home-portal:v0.1.0
+        ghcr.io/jorisjonkers-dev/knowledge-api:v0.1.0
+        ghcr.io/jorisjonkers-dev/agents-api:v0.16.0
+        ghcr.io/jorisjonkers-dev/agents-ui:v0.16.0
+        ghcr.io/jorisjonkers-dev/agent-runtime:v0.16.0
+        ghcr.io/twin/gatus:v5.20.0'
+    secrets:
+      packages-token: ${{ secrets.GITHUB_TOKEN }}
 
   pipeline-complete:
     name: Pipeline Complete

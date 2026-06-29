@@ -38,6 +38,22 @@ plugins {
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+        maven {
+            name = "JorisJonkersDevKotlinSpringCommons"
+            url = uri("https://maven.pkg.github.com/JorisJonkers-dev/kotlin-spring-commons")
+            credentials {
+                username =
+                    providers
+                        .gradleProperty("gpr.user")
+                        .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+                        .orNull
+                password =
+                    providers
+                        .gradleProperty("gpr.token")
+                        .orElse(providers.environmentVariable("GITHUB_TOKEN"))
+                        .orNull
+            }
+        }
     }
 }
 
