@@ -38,21 +38,51 @@ val supportedImageTagServices =
 
 fun parseImageTags(raw: String): Map<String, String> {
     val entries = raw.trim().split(Regex("\\s+")).filter(String::isNotBlank)
-    return entries.associate { entry ->
-        val parts = entry.split("=", limit = 2)
-        if (parts.size != 2 || parts[0].isBlank() || parts[1].isBlank()) {
-            throw GradleException("Invalid IMAGE_TAGS entry: $entry")
-        }
-        val service = parts[0]
-        val tag = parts[1]
-        if (service !in supportedImageTagServices) {
-            throw GradleException("Unsupported IMAGE_TAGS service: $service")
-        }
-        if (tag == "latest" || tag.endsWith(":latest")) {
-            throw GradleException("IMAGE_TAGS entry for $service must not use latest")
-        }
-        service to tag
+    return entries
+        .mapNotNull { entry ->
+            val parts = entry.split("=", limit = 2)
+            val explicitService = parts.size == 2
+            val service = if (explicitService) parts[0] else serviceFromImageRef(entry)
+            val tag = if (explicitService) parts[1] else entry
+            if (service.isBlank() || tag.isBlank()) {
+                throw GradleException("Invalid IMAGE_TAGS entry: $entry")
+            }
+            if (!explicitService && !hasExplicitImageVersion(tag)) {
+                throw GradleException("IMAGE_TAGS entry must use an explicit image tag or digest: $tag")
+            }
+            if (!explicitService && isLatestImageRef(tag)) {
+                throw GradleException("IMAGE_TAGS entry must not use latest: $tag")
+            }
+            if (service !in supportedImageTagServices) {
+                if (explicitService) {
+                    throw GradleException("Unsupported IMAGE_TAGS service: $service")
+                }
+                return@mapNotNull null
+            }
+            if (isLatestImageRef(tag)) {
+                throw GradleException("IMAGE_TAGS entry for $service must not use latest")
+            }
+            service to tag
+        }.toMap()
+}
+
+fun serviceFromImageRef(ref: String): String {
+    val imageName = ref.substringBefore("@").substringAfterLast("/").substringBefore(":")
+    return when (imageName) {
+        "knowledge" -> "knowledge-api"
+        else -> imageName
     }
+}
+
+fun hasExplicitImageVersion(ref: String): Boolean {
+    val imagePath = ref.substringBefore("@").substringAfterLast("/")
+    return ref.contains("@sha256:") || imagePath.contains(":")
+}
+
+fun isLatestImageRef(ref: String): Boolean {
+    val imagePath = ref.substringBefore("@").substringAfterLast("/")
+    val imageTag = imagePath.substringAfter(":", missingDelimiterValue = "")
+    return ref == "latest" || imagePath == "latest" || imageTag == "latest"
 }
 
 fun Test.forwardCommonSystemProperties() {

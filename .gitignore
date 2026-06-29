@@ -6,3 +6,18 @@ out/
 *.iml
 node_modules/
 .DS_Store
+
+# Planning and agent scratch artifacts belong in issues, PRs, or durable docs.
+.specify/
+specs/[0-9][0-9][0-9]-*/
+plans/
+planning/
+scratchpad/
+scratchpads/
+.agent-council/
+*.scratch.md
+*scratchpad*.md
+*agent-council*.md
+.claude/commands/speckit*.md
+.claude/skills/speckit*/
+.agents/skills/speckit*/

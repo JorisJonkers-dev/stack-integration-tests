@@ -14,7 +14,7 @@ permissions:
 jobs:
   jvm:
     name: JVM
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.6.1
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.8.0
     with:
       lint-gradle-args: :system-tests:detekt :system-tests:ktlintCheck
       test-gradle-args: :system-tests:check
@@ -27,12 +27,17 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate required image tag syntax
+      - name: Validate required image refs
         env:
           IMAGE_TAGS: >-
-            auth-api=v0.1.0 auth-ui=v0.1.0 home-portal=v0.1.0
-            knowledge-api=v0.1.0 agents-api=v0.16.0 agents-ui=v0.16.0
-            agent-runtime=v0.16.0
+            ghcr.io/jorisjonkers-dev/auth-api:v0.1.0
+            ghcr.io/jorisjonkers-dev/auth-ui:v0.1.0
+            ghcr.io/jorisjonkers-dev/home-portal:v0.1.0
+            ghcr.io/jorisjonkers-dev/knowledge-api:v0.1.0
+            ghcr.io/jorisjonkers-dev/agents-api:v0.16.0
+            ghcr.io/jorisjonkers-dev/agents-ui:v0.16.0
+            ghcr.io/jorisjonkers-dev/agent-runtime:v0.16.0
+            ghcr.io/twin/gatus:v5.20.0
         run: scripts/validate-image-tags.sh --require-all
 
   pipeline-complete:

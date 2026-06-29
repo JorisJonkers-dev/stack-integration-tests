@@ -18,9 +18,42 @@ class ImageTagsTest {
     }
 
     @Test
+    fun `parses exact image refs from deployment lock image output`() {
+        val tags =
+            ImageTags.parse(
+                """
+                ghcr.io/jorisjonkers-dev/auth-api:v0.1.0
+                ghcr.io/jorisjonkers-dev/auth-ui:v0.1.0
+                ghcr.io/jorisjonkers-dev/home-portal:v0.1.0
+                ghcr.io/jorisjonkers-dev/knowledge-api:v0.1.0
+                ghcr.io/jorisjonkers-dev/agents-api:v0.16.0
+                ghcr.io/jorisjonkers-dev/agents-ui:v0.16.0
+                ghcr.io/jorisjonkers-dev/agent-runtime:v0.16.0
+                ghcr.io/twin/gatus:v5.20.0
+                """.trimIndent(),
+            )
+
+        assertThat(tags.tagFor("auth-api")).isEqualTo("ghcr.io/jorisjonkers-dev/auth-api:v0.1.0")
+        assertThat(tags.tagFor("agents-ui")).isEqualTo("ghcr.io/jorisjonkers-dev/agents-ui:v0.16.0")
+        assertThat(tags.tagFor("gatus")).isNull()
+    }
+
+    @Test
     fun `rejects latest tags`() {
         assertThatIllegalArgumentException()
             .isThrownBy { ImageTags.parse("auth-api=latest") }
+    }
+
+    @Test
+    fun `rejects latest image refs`() {
+        assertThatIllegalArgumentException()
+            .isThrownBy { ImageTags.parse("ghcr.io/jorisjonkers-dev/auth-api:latest") }
+    }
+
+    @Test
+    fun `rejects latest third party image refs`() {
+        assertThatIllegalArgumentException()
+            .isThrownBy { ImageTags.parse("ghcr.io/twin/gatus:latest") }
     }
 
     @Test
