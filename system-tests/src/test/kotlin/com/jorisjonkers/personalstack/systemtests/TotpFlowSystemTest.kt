@@ -18,6 +18,11 @@ import java.util.UUID
 class TotpFlowSystemTest {
     private val authBaseUrl = TestHelper.authBaseUrl
 
+    private data class EnrolledTotp(
+        val secret: String,
+        val qrUri: String,
+    )
+
     private fun generateTotpCode(secret: String): String = TestHelper.generateFreshTotpCode(secret)
 
     private fun registerAndConfirm(username: String): TestHelper.RegisteredUser =
@@ -36,34 +41,7 @@ class TotpFlowSystemTest {
             .extract()
             .jsonPath()
 
-    @Test
-    fun `login without TOTP returns tokens directly`() {
-        val username = "totp_no_${UUID.randomUUID().toString().take(8)}"
-        registerAndConfirm(username)
-
-        val json = login(username)
-
-        assertThat(json.getBoolean("totpRequired")).isFalse()
-        assertThat(json.getString("accessToken")).isNotBlank()
-        assertThat(json.getString("refreshToken")).isNotBlank()
-    }
-
-    @Suppress("LongMethod")
-    @Test
-    fun `full TOTP flow - enroll verify and challenge`() {
-        val username = "totp_full_${UUID.randomUUID().toString().take(8)}"
-        val user = registerAndConfirm(username)
-
-        // Step 1: Login without TOTP — get full tokens
-        val initialLogin = login(username)
-        assertThat(initialLogin.getBoolean("totpRequired")).isFalse()
-        val accessToken = initialLogin.getString("accessToken")
-        assertThat(accessToken).isNotBlank()
-
-        // Get session cookie for protected endpoint access
-        val session = TestHelper.sessionLogin(user)
-
-        // Step 2: Enroll TOTP
+    private fun enrollAndVerifyTotp(session: TestHelper.SessionInfo): EnrolledTotp {
         val enrollJson =
             TestHelper
                 .givenApi()
@@ -79,87 +57,6 @@ class TotpFlowSystemTest {
                 .jsonPath()
 
         val secret = enrollJson.getString("secret")
-        val qrUri = enrollJson.getString("qrUri")
-        assertThat(secret).isNotBlank()
-        assertThat(qrUri).startsWith("otpauth://totp/")
-
-        // Step 3: Verify TOTP (enables it on the account)
-        val verifyCode = generateTotpCode(secret)
-        TestHelper
-            .givenApi()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .cookie("SESSION", session.sessionCookie)
-            .cookie("XSRF-TOKEN", session.csrfToken)
-            .header("X-XSRF-TOKEN", session.csrfToken)
-            .body("""{"code":"$verifyCode"}""")
-            .`when`()
-            .post("/api/v1/totp/verify")
-            .then()
-            .statusCode(204)
-
-        // Step 4: Login again — should require TOTP challenge
-        val secondLogin = login(username)
-        assertThat(secondLogin.getBoolean("totpRequired")).isTrue()
-        assertThat(secondLogin.getString("totpChallengeToken")).isNotBlank()
-        assertThat(secondLogin.getString("accessToken")).isNull()
-
-        // Step 5: Complete TOTP challenge
-        val challengeToken = secondLogin.getString("totpChallengeToken")
-        val challengeCode = generateTotpCode(secret)
-
-        val challengeJson =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .contentType(ContentType.JSON)
-                .body("""{"totpChallengeToken":"$challengeToken","code":"$challengeCode"}""")
-                .`when`()
-                .post("/api/v1/auth/totp-challenge")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-
-        assertThat(challengeJson.getBoolean("totpRequired")).isFalse()
-        assertThat(challengeJson.getString("accessToken")).isNotBlank()
-        assertThat(challengeJson.getString("refreshToken")).isNotBlank()
-
-        // Step 6: Verify session-based access works for forward-auth
-        val totpSessionCookie = TestHelper.sessionLoginAndGetCookie(user, TestHelper.generateFreshTotpCode(secret))
-        TestHelper
-            .givenApi()
-            .baseUri(authBaseUrl)
-            .cookie("SESSION", totpSessionCookie)
-            .`when`()
-            .get("/api/v1/auth/verify")
-            .then()
-            .statusCode(200)
-    }
-
-    @Suppress("LongMethod")
-    @Test
-    fun `TOTP challenge with wrong code returns 400`() {
-        val username = "totp_bad_${UUID.randomUUID().toString().take(8)}"
-        val user = registerAndConfirm(username)
-
-        val session = TestHelper.sessionLogin(user)
-
-        // Enroll + verify TOTP
-        val secret =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .cookie("SESSION", session.sessionCookie)
-                .cookie("XSRF-TOKEN", session.csrfToken)
-                .header("X-XSRF-TOKEN", session.csrfToken)
-                .`when`()
-                .post("/api/v1/totp/enroll")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getString("secret")
 
         TestHelper
             .givenApi()
@@ -174,10 +71,92 @@ class TotpFlowSystemTest {
             .then()
             .statusCode(204)
 
-        // Login again — get challenge
+        return EnrolledTotp(secret, enrollJson.getString("qrUri"))
+    }
+
+    private fun completeTotpChallenge(
+        challengeToken: String,
+        secret: String,
+    ): io.restassured.path.json.JsonPath =
+        TestHelper
+            .givenApi()
+            .baseUri(authBaseUrl)
+            .contentType(ContentType.JSON)
+            .body("""{"totpChallengeToken":"$challengeToken","code":"${generateTotpCode(secret)}"}""")
+            .`when`()
+            .post("/api/v1/auth/totp-challenge")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath()
+
+    private fun verifyForwardAuthSession(
+        user: TestHelper.RegisteredUser,
+        secret: String,
+    ) {
+        val totpSessionCookie = TestHelper.sessionLoginAndGetCookie(user, TestHelper.generateFreshTotpCode(secret))
+        TestHelper
+            .givenApi()
+            .baseUri(authBaseUrl)
+            .cookie("SESSION", totpSessionCookie)
+            .`when`()
+            .get("/api/v1/auth/verify")
+            .then()
+            .statusCode(200)
+    }
+
+    @Test
+    fun `login without TOTP returns tokens directly`() {
+        val username = "totp_no_${UUID.randomUUID().toString().take(8)}"
+        registerAndConfirm(username)
+
+        val json = login(username)
+
+        assertThat(json.getBoolean("totpRequired")).isFalse()
+        assertThat(json.getString("accessToken")).isNotBlank()
+        assertThat(json.getString("refreshToken")).isNotBlank()
+    }
+
+    @Test
+    fun `full TOTP flow - enroll verify and challenge`() {
+        val username = "totp_full_${UUID.randomUUID().toString().take(8)}"
+        val user = registerAndConfirm(username)
+
+        val initialLogin = login(username)
+        assertThat(initialLogin.getBoolean("totpRequired")).isFalse()
+        val accessToken = initialLogin.getString("accessToken")
+        assertThat(accessToken).isNotBlank()
+
+        val session = TestHelper.sessionLogin(user)
+        val enrolledTotp = enrollAndVerifyTotp(session)
+        assertThat(enrolledTotp.secret).isNotBlank()
+        assertThat(enrolledTotp.qrUri).startsWith("otpauth://totp/")
+
+        val secondLogin = login(username)
+        assertThat(secondLogin.getBoolean("totpRequired")).isTrue()
+        assertThat(secondLogin.getString("totpChallengeToken")).isNotBlank()
+        assertThat(secondLogin.getString("accessToken")).isNull()
+
+        val challengeToken = secondLogin.getString("totpChallengeToken")
+        val challengeJson = completeTotpChallenge(challengeToken, enrolledTotp.secret)
+
+        assertThat(challengeJson.getBoolean("totpRequired")).isFalse()
+        assertThat(challengeJson.getString("accessToken")).isNotBlank()
+        assertThat(challengeJson.getString("refreshToken")).isNotBlank()
+
+        verifyForwardAuthSession(user, enrolledTotp.secret)
+    }
+
+    @Test
+    fun `TOTP challenge with wrong code returns 400`() {
+        val username = "totp_bad_${UUID.randomUUID().toString().take(8)}"
+        val user = registerAndConfirm(username)
+
+        val session = TestHelper.sessionLogin(user)
+        enrollAndVerifyTotp(session)
+
         val challengeToken = login(username).getString("totpChallengeToken")
 
-        // Submit wrong code
         TestHelper
             .givenApi()
             .baseUri(authBaseUrl)

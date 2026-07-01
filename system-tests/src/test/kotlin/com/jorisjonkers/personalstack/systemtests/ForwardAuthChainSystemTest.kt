@@ -107,13 +107,12 @@ class ForwardAuthChainSystemTest {
             .containsIgnoringCase(serviceName)
     }
 
-    @Suppress("UnusedParameter")
     @ParameterizedTest(name = "{0}: ADMIN passes forward-auth for all services")
     @MethodSource("forwardAuthServices")
     fun `admin authenticated request passes forward-auth`(
         serviceName: String,
         baseUrl: String,
-        @Suppress("UNUSED_PARAMETER") path: String,
+        path: String,
     ) {
         val adminSession = TestHelper.registerConfirmAndGetAdminSession()
 
@@ -124,13 +123,17 @@ class ForwardAuthChainSystemTest {
                 .redirects()
                 .follow(false)
                 .`when`()
-                .get("/")
+                .get(path)
 
         // Forward-auth failure for permission denial returns 403.
         // Backend services may have their own login pages (e.g. Grafana, Stalwart),
         // so we only verify the response is not a forward-auth rejection.
-        assertThat(response.statusCode).isNotEqualTo(403)
-        assertThat(response.statusCode).isNotEqualTo(401)
+        assertThat(response.statusCode)
+            .describedAs("$serviceName should not be rejected by forward-auth")
+            .isNotEqualTo(403)
+        assertThat(response.statusCode)
+            .describedAs("$serviceName should not require backend authentication at forward-auth")
+            .isNotEqualTo(401)
     }
 
     @ParameterizedTest(name = "{0}: USER without permission is denied by forward-auth")

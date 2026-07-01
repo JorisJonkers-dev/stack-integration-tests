@@ -1,6 +1,6 @@
 package com.jorisjonkers.personalstack.systemtests
 
-import org.hamcrest.Matchers.anyOf
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.not
 import org.hamcrest.Matchers.nullValue
@@ -61,49 +61,64 @@ class TraefikHealthCheckSystemTest {
     @ParameterizedTest(name = "{0} actuator is publicly accessible through Traefik")
     @MethodSource("publicActuatorEndpoints")
     fun `actuator health responds without authentication through Traefik`(
-        @Suppress("UNUSED_PARAMETER") label: String,
+        label: String,
         baseUrl: String,
         path: String,
     ) {
-        traefikRequest()
-            .baseUri(baseUrl)
-            .`when`()
-            .get(path)
+        val response =
+            traefikRequest()
+                .baseUri(baseUrl)
+                .`when`()
+                .get(path)
+
+        assertThat(response.statusCode)
+            .describedAs("$label should be publicly reachable")
+            .isIn(200, 503)
+        response
             .then()
-            .statusCode(anyOf(equalTo(200), equalTo(503)))
             .body("status", not(nullValue()))
     }
 
     @ParameterizedTest(name = "{0} actuator liveness is publicly accessible through Traefik")
     @MethodSource("livenessEndpoints")
     fun `actuator liveness responds 200 without authentication through Traefik`(
-        @Suppress("UNUSED_PARAMETER") label: String,
+        label: String,
         baseUrl: String,
         path: String,
     ) {
-        traefikRequest()
-            .baseUri(baseUrl)
-            .`when`()
-            .get(path)
+        val response =
+            traefikRequest()
+                .baseUri(baseUrl)
+                .`when`()
+                .get(path)
+
+        assertThat(response.statusCode)
+            .describedAs("$label should be live")
+            .isEqualTo(200)
+        response
             .then()
-            .statusCode(200)
             .body("status", equalTo("UP"))
     }
 
     @ParameterizedTest(name = "{0} is publicly accessible through Traefik")
     @MethodSource("v1HealthEndpoints")
     fun `v1 health responds 200 without authentication through Traefik`(
-        @Suppress("UNUSED_PARAMETER") label: String,
+        label: String,
         baseUrl: String,
         path: String,
         serviceName: String,
     ) {
-        traefikRequest()
-            .baseUri(baseUrl)
-            .`when`()
-            .get(path)
+        val response =
+            traefikRequest()
+                .baseUri(baseUrl)
+                .`when`()
+                .get(path)
+
+        assertThat(response.statusCode)
+            .describedAs("$label should return OK")
+            .isEqualTo(200)
+        response
             .then()
-            .statusCode(200)
             .body("status", equalTo("ok"))
             .body("service", equalTo(serviceName))
     }
@@ -111,7 +126,7 @@ class TraefikHealthCheckSystemTest {
     @ParameterizedTest(name = "{0} does NOT redirect to login")
     @MethodSource("allHealthEndpoints")
     fun `health endpoint does not trigger forward-auth redirect`(
-        @Suppress("UNUSED_PARAMETER") label: String,
+        label: String,
         baseUrl: String,
         path: String,
     ) {
@@ -124,8 +139,8 @@ class TraefikHealthCheckSystemTest {
                 .get(path)
 
         // Should be 200 (direct response), not 302 (redirect to login)
-        assert(response.statusCode != 302) {
-            "Expected health endpoint to NOT redirect, but got 302 to: ${response.header("Location")}"
-        }
+        assertThat(response.statusCode)
+            .describedAs("$label should not redirect to login at ${response.header("Location")}")
+            .isNotEqualTo(302)
     }
 }

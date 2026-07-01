@@ -68,8 +68,7 @@ class HealthSmokeSystemTest {
         val down =
             components.entries
                 .mapNotNull { (name, value) ->
-                    @Suppress("UNCHECKED_CAST")
-                    val status = (value as? Map<String, Any?>)?.get("status") as? String
+                    val status = (value as? Map<*, *>)?.get("status") as? String
                     if (status == "DOWN" || status == "OUT_OF_SERVICE") "$name=$status" else null
                 }
 
