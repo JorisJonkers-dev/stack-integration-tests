@@ -85,31 +85,20 @@ class TotpReLoginSystemTest {
         return secret
     }
 
-    @Suppress("LongMethod")
-    @Test
-    fun `account with TOTP can sign in multiple times with same secret`() {
-        val username = "relogin_${UUID.randomUUID().toString().take(8)}"
-        val user = registerAndConfirm(username)
+    private fun assertTotpLoginSucceeds(
+        username: String,
+        secret: String,
+    ) {
+        val login = login(username)
+        assertThat(login.getBoolean("totpRequired")).isTrue()
+        val tokens = completeTotpChallenge(login.getString("totpChallengeToken"), secret)
+        assertThat(tokens.getString("accessToken")).isNotBlank()
+    }
 
-        // First session login — no TOTP yet
-        val session = TestHelper.sessionLogin(user)
-
-        // Enroll and verify TOTP
-        val secret = enrollAndVerifyTotp(session)
-
-        // Second login — TOTP required, complete challenge
-        val secondLogin = login(username)
-        assertThat(secondLogin.getBoolean("totpRequired")).isTrue()
-        val secondTokens = completeTotpChallenge(secondLogin.getString("totpChallengeToken"), secret)
-        assertThat(secondTokens.getString("accessToken")).isNotBlank()
-
-        // Third login — same TOTP secret still works
-        val thirdLogin = login(username)
-        assertThat(thirdLogin.getBoolean("totpRequired")).isTrue()
-        val thirdTokens = completeTotpChallenge(thirdLogin.getString("totpChallengeToken"), secret)
-        assertThat(thirdTokens.getString("accessToken")).isNotBlank()
-
-        // Verify session-based access works for forward-auth
+    private fun assertForwardAuthSessionWorks(
+        user: TestHelper.RegisteredUser,
+        secret: String,
+    ) {
         val totpSessionCookie = TestHelper.sessionLoginAndGetCookie(user, TestHelper.generateFreshTotpCode(secret))
         TestHelper
             .givenApi()
@@ -119,6 +108,19 @@ class TotpReLoginSystemTest {
             .get("/api/v1/auth/verify")
             .then()
             .statusCode(200)
+    }
+
+    @Test
+    fun `account with TOTP can sign in multiple times with same secret`() {
+        val username = "relogin_${UUID.randomUUID().toString().take(8)}"
+        val user = registerAndConfirm(username)
+
+        val session = TestHelper.sessionLogin(user)
+        val secret = enrollAndVerifyTotp(session)
+
+        assertTotpLoginSucceeds(username, secret)
+        assertTotpLoginSucceeds(username, secret)
+        assertForwardAuthSessionWorks(user, secret)
     }
 
     @Test

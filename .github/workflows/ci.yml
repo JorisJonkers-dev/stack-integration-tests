@@ -16,7 +16,7 @@ jobs:
     name: JVM
     uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.9.0
     with:
-      lint-gradle-args: :system-tests:detekt :system-tests:ktlintCheck
+      lint-gradle-args: :system-tests:detektMain :system-tests:detektTest :system-tests:ktlintCheck
       test-gradle-args: :system-tests:check
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}

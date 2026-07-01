@@ -1,6 +1,7 @@
 package com.jorisjonkers.personalstack.systemtests
 
 import io.restassured.http.ContentType
+import io.restassured.response.Response
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -21,6 +22,11 @@ import java.util.UUID
 class OAuth2FlowSystemTest {
     private val authBaseUrl = TestHelper.authBaseUrl
 
+    private data class PkceTokenRequest(
+        val codeVerifier: String,
+        val authorizationCode: String,
+    )
+
     private fun generateCodeVerifier(): String {
         val bytes = ByteArray(32)
         SecureRandom().nextBytes(bytes)
@@ -32,7 +38,110 @@ class OAuth2FlowSystemTest {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
     }
 
-    private fun generateTotpCode(secret: String): String = TestHelper.generateFreshTotpCode(secret)
+    private fun sessionLoginResponse(
+        user: TestHelper.RegisteredUser,
+        totpCode: String? = null,
+    ): Response {
+        val body =
+            if (totpCode == null) {
+                """{"username":"${user.username}","password":"${user.password}"}"""
+            } else {
+                """{"username":"${user.username}","password":"${user.password}","totpCode":"$totpCode"}"""
+            }
+
+        return TestHelper
+            .givenApi()
+            .baseUri(authBaseUrl)
+            .contentType(ContentType.JSON)
+            .body(body)
+            .`when`()
+            .post("/api/v1/auth/session-login")
+    }
+
+    private fun enrollAndVerifyTotp(session: TestHelper.SessionInfo): String {
+        val secret =
+            TestHelper
+                .givenApi()
+                .baseUri(authBaseUrl)
+                .cookie("SESSION", session.sessionCookie)
+                .cookie("XSRF-TOKEN", session.csrfToken)
+                .header("X-XSRF-TOKEN", session.csrfToken)
+                .`when`()
+                .post("/api/v1/totp/enroll")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getString("secret")
+
+        TestHelper
+            .givenApi()
+            .baseUri(authBaseUrl)
+            .contentType(ContentType.JSON)
+            .cookie("SESSION", session.sessionCookie)
+            .cookie("XSRF-TOKEN", session.csrfToken)
+            .header("X-XSRF-TOKEN", session.csrfToken)
+            .body("""{"code":"${TestHelper.generateFreshTotpCode(secret)}"}""")
+            .`when`()
+            .post("/api/v1/totp/verify")
+            .then()
+            .statusCode(204)
+
+        return secret
+    }
+
+    private fun authorizeWithPkce(sessionCookie: String): PkceTokenRequest {
+        val codeVerifier = generateCodeVerifier()
+        val codeChallenge = generateCodeChallenge(codeVerifier)
+
+        val authorizeResponse =
+            TestHelper
+                .givenApi()
+                .baseUri(authBaseUrl)
+                .cookie("SESSION", sessionCookie)
+                .redirects()
+                .follow(false)
+                .queryParam("response_type", "code")
+                .queryParam("client_id", "auth-ui")
+                .queryParam("redirect_uri", "http://localhost:5174/callback")
+                .queryParam("scope", "openid profile email")
+                .queryParam("code_challenge", codeChallenge)
+                .queryParam("code_challenge_method", "S256")
+                .queryParam("state", "test-state")
+                .`when`()
+                .get("/api/oauth2/authorize")
+
+        assertThat(authorizeResponse.statusCode).isIn(302, 303)
+        val location = authorizeResponse.header("Location")
+        assertThat(location).contains("code=")
+
+        val authorizationCode =
+            java.net
+                .URI(location)
+                .query
+                .split("&")
+                .associate { it.split("=", limit = 2).let { kv -> kv[0] to kv[1] } }["code"]
+        assertThat(authorizationCode).isNotNull().isNotBlank()
+
+        return PkceTokenRequest(codeVerifier, requireNotNull(authorizationCode))
+    }
+
+    private fun exchangeCodeForTokens(tokenRequest: PkceTokenRequest) =
+        TestHelper
+            .givenApi()
+            .baseUri(authBaseUrl)
+            .contentType(ContentType.URLENC)
+            .formParam("grant_type", "authorization_code")
+            .formParam("code", tokenRequest.authorizationCode)
+            .formParam("redirect_uri", "http://localhost:5174/callback")
+            .formParam("client_id", "auth-ui")
+            .formParam("code_verifier", tokenRequest.codeVerifier)
+            .`when`()
+            .post("/api/oauth2/token")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath()
 
     @Test
     fun `session login returns 200 with success for valid credentials`() {
@@ -55,52 +164,16 @@ class OAuth2FlowSystemTest {
         assertThat(json.getBoolean("totpRequired")).isFalse()
     }
 
-    @Suppress("LongMethod")
     @Test
     fun `session login returns totpRequired when TOTP is enabled`() {
         val username = "oauth_totp_${UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username = username)
         val session = TestHelper.sessionLogin(user)
 
-        // Enroll TOTP
-        val secret =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .cookie("SESSION", session.sessionCookie)
-                .cookie("XSRF-TOKEN", session.csrfToken)
-                .header("X-XSRF-TOKEN", session.csrfToken)
-                .`when`()
-                .post("/api/v1/totp/enroll")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getString("secret")
+        enrollAndVerifyTotp(session)
 
-        // Verify TOTP to enable it
-        TestHelper
-            .givenApi()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .cookie("SESSION", session.sessionCookie)
-            .cookie("XSRF-TOKEN", session.csrfToken)
-            .header("X-XSRF-TOKEN", session.csrfToken)
-            .body("""{"code":"${generateTotpCode(secret)}"}""")
-            .`when`()
-            .post("/api/v1/totp/verify")
-            .then()
-            .statusCode(204)
-
-        // Session login without TOTP code should return totpRequired
         val json =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .contentType(ContentType.JSON)
-                .body("""{"username":"${user.username}","password":"${user.password}"}""")
-                .`when`()
-                .post("/api/v1/auth/session-login")
+            sessionLoginResponse(user)
                 .then()
                 .statusCode(200)
                 .extract()
@@ -110,53 +183,16 @@ class OAuth2FlowSystemTest {
         assertThat(json.getBoolean("success")).isFalse()
     }
 
-    @Suppress("LongMethod")
     @Test
     fun `session login with TOTP code creates valid session`() {
         val username = "oauth_totp2_${UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username = username)
         val session = TestHelper.sessionLogin(user)
 
-        // Enroll and verify TOTP
-        val secret =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .cookie("SESSION", session.sessionCookie)
-                .cookie("XSRF-TOKEN", session.csrfToken)
-                .header("X-XSRF-TOKEN", session.csrfToken)
-                .`when`()
-                .post("/api/v1/totp/enroll")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getString("secret")
+        val secret = enrollAndVerifyTotp(session)
 
-        TestHelper
-            .givenApi()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .cookie("SESSION", session.sessionCookie)
-            .cookie("XSRF-TOKEN", session.csrfToken)
-            .header("X-XSRF-TOKEN", session.csrfToken)
-            .body("""{"code":"${generateTotpCode(secret)}"}""")
-            .`when`()
-            .post("/api/v1/totp/verify")
-            .then()
-            .statusCode(204)
-
-        // Session login with TOTP code should succeed
         val json =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .contentType(ContentType.JSON)
-                .body(
-                    """{"username":"${user.username}","password":"${user.password}",""" +
-                        """"totpCode":"${TestHelper.generateFreshTotpCode(secret)}"}""",
-                ).`when`()
-                .post("/api/v1/auth/session-login")
+            sessionLoginResponse(user, TestHelper.generateFreshTotpCode(secret))
                 .then()
                 .statusCode(200)
                 .extract()
@@ -250,50 +286,15 @@ class OAuth2FlowSystemTest {
         assertThat(status).isIn(400, 422)
     }
 
-    @Suppress("LongMethod")
     @Test
     fun `session login with TOTP enabled but wrong code returns 400`() {
         val username = "oauth_bad_${UUID.randomUUID().toString().take(8)}"
         val user = TestHelper.registerAndConfirm(username = username)
         val session = TestHelper.sessionLogin(user)
 
-        // Enroll and verify TOTP
-        val secret =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .cookie("SESSION", session.sessionCookie)
-                .cookie("XSRF-TOKEN", session.csrfToken)
-                .header("X-XSRF-TOKEN", session.csrfToken)
-                .`when`()
-                .post("/api/v1/totp/enroll")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getString("secret")
+        enrollAndVerifyTotp(session)
 
-        TestHelper
-            .givenApi()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .cookie("SESSION", session.sessionCookie)
-            .cookie("XSRF-TOKEN", session.csrfToken)
-            .header("X-XSRF-TOKEN", session.csrfToken)
-            .body("""{"code":"${generateTotpCode(secret)}"}""")
-            .`when`()
-            .post("/api/v1/totp/verify")
-            .then()
-            .statusCode(204)
-
-        // Session login with wrong TOTP code
-        TestHelper
-            .givenApi()
-            .baseUri(authBaseUrl)
-            .contentType(ContentType.JSON)
-            .body("""{"username":"${user.username}","password":"${user.password}","totpCode":"000000"}""")
-            .`when`()
-            .post("/api/v1/auth/session-login")
+        sessionLoginResponse(user, "000000")
             .then()
             .statusCode(400)
     }
@@ -347,77 +348,16 @@ class OAuth2FlowSystemTest {
         assertThat(location).contains("state=test-state")
     }
 
-    @Suppress("LongMethod")
     @Test
     fun `full OAuth2 PKCE flow - session login to token exchange`() {
         val user = TestHelper.registerAndConfirm()
 
-        // Step 1: Session login
-        val sessionResponse =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .contentType(ContentType.JSON)
-                .body("""{"username":"${user.username}","password":"${user.password}"}""")
-                .`when`()
-                .post("/api/v1/auth/session-login")
-
+        val sessionResponse = sessionLoginResponse(user)
         assertThat(sessionResponse.statusCode).isEqualTo(200)
         val sessionCookie = sessionResponse.cookie("SESSION")
         assertThat(sessionCookie).isNotNull()
 
-        // Step 2: OAuth2 authorize with PKCE
-        val codeVerifier = generateCodeVerifier()
-        val codeChallenge = generateCodeChallenge(codeVerifier)
-
-        val authorizeResponse =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .cookie("SESSION", sessionCookie)
-                .redirects()
-                .follow(false)
-                .queryParam("response_type", "code")
-                .queryParam("client_id", "auth-ui")
-                .queryParam("redirect_uri", "http://localhost:5174/callback")
-                .queryParam("scope", "openid profile email")
-                .queryParam("code_challenge", codeChallenge)
-                .queryParam("code_challenge_method", "S256")
-                .queryParam("state", "test-state")
-                .`when`()
-                .get("/api/oauth2/authorize")
-
-        assertThat(authorizeResponse.statusCode).isIn(302, 303)
-
-        val location = authorizeResponse.header("Location")
-        assertThat(location).contains("code=")
-
-        // Extract authorization code from redirect URI
-        val code =
-            java.net
-                .URI(location)
-                .query
-                .split("&")
-                .associate { it.split("=", limit = 2).let { kv -> kv[0] to kv[1] } }["code"]
-        assertThat(code).isNotNull().isNotBlank()
-
-        // Step 3: Exchange code for tokens
-        val tokenJson =
-            TestHelper
-                .givenApi()
-                .baseUri(authBaseUrl)
-                .contentType(ContentType.URLENC)
-                .formParam("grant_type", "authorization_code")
-                .formParam("code", code)
-                .formParam("redirect_uri", "http://localhost:5174/callback")
-                .formParam("client_id", "auth-ui")
-                .formParam("code_verifier", codeVerifier)
-                .`when`()
-                .post("/api/oauth2/token")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
+        val tokenJson = exchangeCodeForTokens(authorizeWithPkce(sessionCookie))
 
         assertThat(tokenJson.getString("access_token")).isNotBlank()
         assertThat(tokenJson.getString("token_type")).isEqualToIgnoringCase("Bearer")

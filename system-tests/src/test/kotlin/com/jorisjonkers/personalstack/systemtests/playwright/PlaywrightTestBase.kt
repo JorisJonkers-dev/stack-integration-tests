@@ -9,7 +9,7 @@ import java.util.UUID
 
 internal const val MAX_PLAYWRIGHT_TIMEOUT_MS = 5_000.0
 
-abstract class PlaywrightTestBase : PlaywrightStackTestBase() {
+open class PlaywrightTestBase : PlaywrightStackTestBase() {
     companion object {
         val AUTH_UI_URL: String =
             System.getProperty("test.auth-ui.url", "https://auth.jorisjonkers.test")

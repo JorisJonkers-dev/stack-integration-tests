@@ -27,7 +27,7 @@ class SecurityHeadersSystemTest {
     @ParameterizedTest(name = "{0} returns Content-Security-Policy header")
     @MethodSource("uiEndpoints")
     fun `UI route includes Content-Security-Policy header`(
-        @Suppress("UNUSED_PARAMETER") label: String,
+        label: String,
         baseUrl: String,
         path: String,
     ) {
@@ -42,7 +42,7 @@ class SecurityHeadersSystemTest {
                 .header("Content-Security-Policy")
 
         assertThat(csp)
-            .describedAs("Content-Security-Policy header should be present")
+            .describedAs("$label Content-Security-Policy header should be present")
             .isNotNull()
             .isNotBlank()
 
@@ -50,53 +50,64 @@ class SecurityHeadersSystemTest {
             csp
                 .split(";")
                 .map { it.trim() }
-                .firstOrNull { it.startsWith("script-src") } ?: ""
+                .firstOrNull { it.startsWith("script-src") }
+                .orEmpty()
 
         assertThat(scriptSrc)
-            .describedAs("CSP script-src must include 'self'")
+            .describedAs("$label CSP script-src must include 'self'")
             .contains("'self'")
 
         assertThat(csp)
-            .describedAs("CSP img-src must not reference external QR API")
+            .describedAs("$label CSP img-src must not reference external QR API")
             .doesNotContain("api.qrserver.com")
     }
 
     @ParameterizedTest(name = "{0} returns X-Content-Type-Options header")
     @MethodSource("uiEndpoints")
     fun `UI route includes X-Content-Type-Options nosniff`(
-        @Suppress("UNUSED_PARAMETER") label: String,
+        label: String,
         baseUrl: String,
         path: String,
     ) {
-        traefikRequest()
-            .baseUri(baseUrl)
-            .`when`()
-            .get(path)
-            .then()
-            .statusCode(200)
-            .header("X-Content-Type-Options", "nosniff")
+        val response =
+            traefikRequest()
+                .baseUri(baseUrl)
+                .`when`()
+                .get(path)
+
+        assertThat(response.statusCode)
+            .describedAs("$label should return OK")
+            .isEqualTo(200)
+        assertThat(response.header("X-Content-Type-Options"))
+            .describedAs("$label should return nosniff")
+            .isEqualTo("nosniff")
     }
 
     @ParameterizedTest(name = "{0} returns X-Frame-Options header")
     @MethodSource("uiEndpoints")
     fun `UI route includes X-Frame-Options DENY`(
-        @Suppress("UNUSED_PARAMETER") label: String,
+        label: String,
         baseUrl: String,
         path: String,
     ) {
-        traefikRequest()
-            .baseUri(baseUrl)
-            .`when`()
-            .get(path)
-            .then()
-            .statusCode(200)
-            .header("X-Frame-Options", "DENY")
+        val response =
+            traefikRequest()
+                .baseUri(baseUrl)
+                .`when`()
+                .get(path)
+
+        assertThat(response.statusCode)
+            .describedAs("$label should return OK")
+            .isEqualTo(200)
+        assertThat(response.header("X-Frame-Options"))
+            .describedAs("$label should deny framing")
+            .isEqualTo("DENY")
     }
 
     @ParameterizedTest(name = "{0} returns Referrer-Policy header")
     @MethodSource("uiEndpoints")
     fun `UI route includes Referrer-Policy header`(
-        @Suppress("UNUSED_PARAMETER") label: String,
+        label: String,
         baseUrl: String,
         path: String,
     ) {
@@ -111,7 +122,7 @@ class SecurityHeadersSystemTest {
                 .header("Referrer-Policy")
 
         assertThat(referrerPolicy)
-            .describedAs("Referrer-Policy header should be present")
+            .describedAs("$label Referrer-Policy header should be present")
             .isNotNull()
             .isNotBlank()
     }

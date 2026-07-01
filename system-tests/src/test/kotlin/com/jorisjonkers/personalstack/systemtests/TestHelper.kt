@@ -27,7 +27,7 @@ object TestHelper {
     private const val API_RETRY_ATTEMPTS = 3
     private const val API_RETRY_DELAY_MS = 2000L
 
-    val authBaseUrl = System.getProperty("test.auth-api.url", "https://auth.jorisjonkers.test")
+    val authBaseUrl: String = System.getProperty("test.auth-api.url", "https://auth.jorisjonkers.test")
 
     fun givenApi(): RequestSpecification = given().relaxedHTTPSValidation()
 
@@ -153,7 +153,7 @@ object TestHelper {
         assertThat(response.statusCode).isEqualTo(200)
         val sessionCookie =
             response.cookie("SESSION")
-                ?: throw IllegalStateException("No SESSION cookie in response")
+                ?: error("No SESSION cookie in response")
         return SessionInfo(sessionCookie, UUID.randomUUID().toString())
     }
 
