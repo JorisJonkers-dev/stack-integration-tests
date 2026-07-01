@@ -50,7 +50,8 @@ class SecurityHeadersSystemTest {
             csp
                 .split(";")
                 .map { it.trim() }
-                .firstOrNull { it.startsWith("script-src") } ?: ""
+                .firstOrNull { it.startsWith("script-src") }
+                .orEmpty()
 
         assertThat(scriptSrc)
             .describedAs("$label CSP script-src must include 'self'")

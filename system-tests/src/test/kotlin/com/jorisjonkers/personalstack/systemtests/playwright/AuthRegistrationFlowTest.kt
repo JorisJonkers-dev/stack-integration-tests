@@ -59,9 +59,6 @@ class AuthRegistrationFlowTest : PlaywrightTestBase() {
 
     @Test
     fun `confirm email page shows success`() {
-        val username = uniqueUsername("conf")
-        val user = registerAndConfirm(username)
-
         // Register a NEW user (unconfirmed) and get token from DB
         val newUsername = uniqueUsername("conf2")
         val email = "$newUsername@systemtest.example.com"
