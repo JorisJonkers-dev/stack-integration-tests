@@ -24,7 +24,7 @@ jobs:
   non-playwright:
     name: Non-Playwright System Tests
     if: ${{ inputs.image-tags != '' }}
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.9.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.10.2
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -36,7 +36,7 @@ jobs:
   playwright-1:
     name: Playwright System Tests 1/4
     if: ${{ inputs.image-tags != '' }}
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.9.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.10.2
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -50,7 +50,7 @@ jobs:
   playwright-2:
     name: Playwright System Tests 2/4
     if: ${{ inputs.image-tags != '' }}
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.9.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.10.2
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -64,7 +64,7 @@ jobs:
   playwright-3:
     name: Playwright System Tests 3/4
     if: ${{ inputs.image-tags != '' }}
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.9.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.10.2
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -78,7 +78,7 @@ jobs:
   playwright-4:
     name: Playwright System Tests 4/4
     if: ${{ inputs.image-tags != '' }}
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.9.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.10.2
     with:
       lint-gradle-args: help
       test-gradle-args: >-
