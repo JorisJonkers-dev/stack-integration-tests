@@ -1,0 +1,13 @@
+{
+  "name": "stack-integration-tests-harness",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "T2 deploy harness scripts for stack integration testing",
+  "scripts": {
+    "test": "node --test 'deploy-harness/tests/**/*.mjs'"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

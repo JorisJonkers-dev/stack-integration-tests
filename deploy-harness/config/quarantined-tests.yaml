@@ -1,0 +1,4 @@
+# Quarantine manifest for system tests.
+# Entries here are tests excluded from normal runs; requires owner approval (CODEOWNERS-gated).
+# Each entry must have: testClass, ownerApproved: true, issueUrl (JorisJonkers-dev/* prefix), expiresAt.
+entries: []

@@ -5,3 +5,8 @@
 # @JorisJonkers-dev/maintainers does not exist.
 
 * @JorisJonkers-dev/maintainers
+
+# Quarantine manifest and full-system config require platform-owners review (lens C6-flake).
+# Any change to quarantined-tests.yaml must be owner-approved to prevent unapproved test hiding.
+deploy-harness/config/quarantined-tests.yaml @JorisJonkers-dev/platform-owners
+deploy-harness/config/full-system.yaml @JorisJonkers-dev/platform-owners

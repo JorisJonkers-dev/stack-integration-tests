@@ -1,0 +1,248 @@
+name: Full System Integration
+
+on:
+  workflow_call:
+    inputs:
+      composition-lock-path:
+        required: true
+        type: string
+        description: "Path of the lock file within the candidate artifact (e.g. cluster-composition.lock.yml)"
+      composed-root-ref:
+        required: true
+        type: string
+        description: "OCI ref — informational; digest is authoritative per SC-6"
+      composed-root-digest:
+        required: true
+        type: string
+        description: "sha256:<hex> from SC-6 compose gate output"
+      candidate-artifact-name:
+        required: true
+        type: string
+        description: "GitHub Actions artifact name containing the candidate tree (candidate-tree-${github.sha})"
+      environment:
+        required: false
+        type: string
+        default: "production"
+      fallback-mode:
+        required: false
+        type: string
+        default: "real-k3s-vcluster"
+        description: "Set to 'k3d-installability' for non-mergeable installability-only check"
+    outputs:
+      gate-summary-artifact:
+        value: ${{ jobs.finalize.outputs.gate-summary-artifact }}
+        description: "Name of the uploaded gate-summary artifact (SC-4)"
+
+permissions:
+  contents: read
+  packages: read
+  actions: read
+  id-token: write  # OIDC for Vault login
+
+concurrency:
+  group: full-system-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy-candidate:
+    name: Deploy Candidate
+    runs-on: self-hosted-k3s-t2
+    outputs:
+      namespace: ${{ steps.provision.outputs.namespace }}
+      vcluster-name: ${{ steps.provision.outputs.vcluster-name }}
+      cleanup-state: ${{ steps.provision.outputs.cleanup-state }}
+    steps:
+      # Split checkouts: harness repo to harness/, candidate artifact to candidate/ (lens C6-fidelity)
+      - name: Checkout harness
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          path: harness/
+
+      - name: Download candidate artifact
+        uses: actions/download-artifact@fa0a91b85d4f404e444306234a19c2bf56b5d63c  # v4.1.8
+        with:
+          name: ${{ inputs.candidate-artifact-name }}
+          path: candidate/
+
+      - name: prepare-candidate
+        id: prepare
+        run: node harness/deploy-harness/scripts/prepare-candidate.mjs
+        env:
+          CANDIDATE_DIR: candidate/
+          LOCK_PATH: ${{ inputs.composition-lock-path }}
+          EXPECTED_COMPOSED_DIGEST: ${{ inputs.composed-root-digest }}
+
+      # Correction #22: upload candidate-lock.json as artifact so test suite jobs can download it.
+      # RUNNER_TEMP does not persist across jobs.
+      - name: Upload candidate lock
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        with:
+          name: candidate-lock-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/candidate-lock.json
+          retention-days: 1
+
+      - name: provision-vcluster
+        id: provision
+        run: node harness/deploy-harness/scripts/provision-vcluster.mjs
+        env:
+          RUN_ID: ${{ github.run_id }}
+          ATTEMPT: ${{ github.run_attempt }}
+
+      - name: seed-vault-approle
+        run: node harness/deploy-harness/scripts/seed-vault-approle.mjs
+        env:
+          VAULT_ADDR: ${{ secrets.T2_VAULT_ADDR }}
+          NAMESPACE: ${{ steps.provision.outputs.namespace }}
+          CLEANUP_STATE: ${{ steps.provision.outputs.cleanup-state }}
+
+      - name: apply-candidate
+        run: node harness/deploy-harness/scripts/apply-candidate.mjs
+        env:
+          CANDIDATE_DIR: candidate/
+          NAMESPACE: ${{ steps.provision.outputs.namespace }}
+          VCLUSTER_NAME: ${{ steps.provision.outputs.vcluster-name }}
+
+      - name: wait-flux-ready
+        run: node harness/deploy-harness/scripts/wait-flux-ready.mjs
+        env:
+          VCLUSTER_NAME: ${{ steps.provision.outputs.vcluster-name }}
+          NAMESPACE: ${{ steps.provision.outputs.namespace }}
+
+      - name: wait-runtime-healthy
+        run: node harness/deploy-harness/scripts/wait-runtime-healthy.mjs
+        env:
+          VCLUSTER_NAME: ${{ steps.provision.outputs.vcluster-name }}
+          NAMESPACE: ${{ steps.provision.outputs.namespace }}
+
+  non-playwright:
+    name: System Tests (non-Playwright)
+    needs: deploy-candidate
+    runs-on: self-hosted-k3s-t2
+    steps:
+      - name: Checkout harness
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          path: harness/
+
+      # Correction #22: download candidate-lock.json from artifact (RUNNER_TEMP does not persist)
+      - name: Download candidate lock
+        uses: actions/download-artifact@fa0a91b85d4f404e444306234a19c2bf56b5d63c  # v4.1.8
+        with:
+          name: candidate-lock-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/
+
+      - name: run-gradle-suite
+        run: node harness/deploy-harness/scripts/run-gradle-suite.mjs
+        working-directory: harness/
+        env:
+          SUITE: non-playwright
+          SHARD: "1/1"
+          VCLUSTER_NAME: ${{ needs.deploy-candidate.outputs.vcluster-name }}
+          NAMESPACE: ${{ needs.deploy-candidate.outputs.namespace }}
+          LOCK_PATH: ${{ inputs.composition-lock-path }}
+
+  playwright:
+    name: System Tests (Playwright shard ${{ matrix.shard }})
+    needs: deploy-candidate
+    runs-on: self-hosted-k3s-t2
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Checkout harness
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          path: harness/
+
+      # Correction #22: download candidate-lock.json from artifact
+      - name: Download candidate lock
+        uses: actions/download-artifact@fa0a91b85d4f404e444306234a19c2bf56b5d63c  # v4.1.8
+        with:
+          name: candidate-lock-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/
+
+      - name: run-gradle-suite
+        run: node harness/deploy-harness/scripts/run-gradle-suite.mjs
+        working-directory: harness/
+        env:
+          SUITE: playwright
+          SHARD: "${{ matrix.shard }}/4"
+          VCLUSTER_NAME: ${{ needs.deploy-candidate.outputs.vcluster-name }}
+          NAMESPACE: ${{ needs.deploy-candidate.outputs.namespace }}
+          LOCK_PATH: ${{ inputs.composition-lock-path }}
+
+      - name: Upload shard artifacts
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        with:
+          name: playwright-shard-${{ matrix.shard }}-artifacts
+          path: harness/system-tests/build/reports/playwright-shard-${{ matrix.shard }}/
+          if-no-files-found: ignore
+
+  finalize:
+    name: Finalize Gate
+    runs-on: ubuntu-latest
+    needs: [deploy-candidate, non-playwright, playwright]
+    if: always()
+    outputs:
+      gate-summary-artifact: ${{ steps.emit.outputs.gate-summary-artifact }}
+    steps:
+      - name: Checkout harness
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          path: harness/
+
+      - name: Set up Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e  # v4.3.0
+        with:
+          node-version: '20'
+
+      - name: Install harness dependencies
+        run: npm ci
+        working-directory: harness/
+
+      - name: rerun-policy
+        id: rerun
+        run: node harness/deploy-harness/scripts/rerun-policy.mjs
+        env:
+          FALLBACK_MODE: ${{ inputs.fallback-mode }}
+          NON_PLAYWRIGHT_RESULT: ${{ needs.non-playwright.result }}
+          PLAYWRIGHT_RESULT: ${{ needs.playwright.result }}
+
+      - name: emit-gate-summary
+        id: emit
+        run: node harness/deploy-harness/scripts/emit-gate-summary.mjs
+        env:
+          RERUN_POLICY_STATUS: ${{ steps.rerun.outputs.status }}
+          RERUN_POLICY_REASON: ${{ steps.rerun.outputs.reason }}
+          FLAKY_CANDIDATES_JSON: ${{ steps.rerun.outputs.flaky-candidates-json }}
+
+      - name: Upload gate summary
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        with:
+          name: gate-summary-stack-integration-gate
+          path: gate-summary.json
+
+      - name: Fail if not pass
+        if: steps.emit.outputs.status != 'pass'
+        run: exit 1
+
+  cleanup:
+    name: Cleanup T2 Resources
+    runs-on: self-hosted-k3s-t2
+    needs: [deploy-candidate, non-playwright, playwright, finalize]
+    if: always()  # guaranteed teardown (lens C6-fidelity/flake)
+    steps:
+      - name: Checkout harness
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          path: harness/
+
+      - name: cleanup-target
+        run: node harness/deploy-harness/scripts/cleanup-target.mjs
+        env:
+          NAMESPACE: ${{ needs.deploy-candidate.outputs.namespace }}
+          VCLUSTER_NAME: ${{ needs.deploy-candidate.outputs.vcluster-name }}
+          CLEANUP_STATE: ${{ needs.deploy-candidate.outputs.cleanup-state }}
+          VAULT_ADDR: ${{ secrets.T2_VAULT_ADDR }}
