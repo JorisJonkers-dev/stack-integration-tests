@@ -1,6 +1,7 @@
 package com.jorisjonkers.personalstack.systemtests
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -15,9 +16,8 @@ import java.time.LocalDate
  * system test suite. The quarantine manifest file itself is CODEOWNERS-gated
  * to require platform-owners approval for any change.
  */
-@org.junit.jupiter.api.Tag("system")
+@Tag("system")
 class QuarantineContractTest {
-
     private val manifest: QuarantineManifest =
         QuarantineManifest.load("../../deploy-harness/config/quarantined-tests.yaml")
 
@@ -25,10 +25,7 @@ class QuarantineContractTest {
     fun `all quarantine entries have owner approval`() {
         for (entry in manifest.entries) {
             assertThat(entry.ownerApproved)
-                .withFailMessage(
-                    "Quarantine entry ${entry.testClass} is not owner-approved. " +
-                        "Set ownerApproved: true after a platform-owner reviews the quarantine rationale.",
-                )
+                .describedAs("Quarantine entry ${entry.testClass} must be owner-approved (ownerApproved: true)")
                 .isTrue()
         }
     }
@@ -38,10 +35,7 @@ class QuarantineContractTest {
         val issuePrefix = "https://github.com/JorisJonkers-dev/"
         for (entry in manifest.entries) {
             assertThat(entry.issueUrl)
-                .withFailMessage(
-                    "Quarantine entry ${entry.testClass} issue URL '${entry.issueUrl}' " +
-                        "must start with $issuePrefix",
-                )
+                .describedAs("Quarantine entry ${entry.testClass} issue URL must start with $issuePrefix")
                 .startsWith(issuePrefix)
         }
     }
@@ -52,10 +46,7 @@ class QuarantineContractTest {
         for (entry in manifest.entries) {
             val expires = LocalDate.parse(entry.expiresAt)
             assertThat(expires)
-                .withFailMessage(
-                    "Quarantine entry ${entry.testClass} expired on ${entry.expiresAt} " +
-                        "(today: $today). Renew or remove the quarantine entry.",
-                )
+                .describedAs("Quarantine entry ${entry.testClass} expired on ${entry.expiresAt}; renew or remove")
                 .isAfter(today)
         }
     }

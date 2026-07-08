@@ -29,8 +29,12 @@ data class QuarantineEntry(
  * Uses a minimal block-YAML parser that covers only this schema.
  * The manifest is gated by CODEOWNERS so structure is controlled.
  */
-data class QuarantineManifest(val entries: List<QuarantineEntry>) {
+data class QuarantineManifest(
+    val entries: List<QuarantineEntry>,
+) {
     companion object {
+        private val KEY_PATTERN = Regex("[a-zA-Z][a-zA-Z0-9]*")
+
         /**
          * Load a quarantine manifest from a YAML file path.
          * Returns an empty manifest if the file does not exist.
@@ -44,69 +48,72 @@ data class QuarantineManifest(val entries: List<QuarantineEntry>) {
             return parseManifest(file.readText())
         }
 
-        internal fun parseManifest(yaml: String): QuarantineManifest {
-            val entries = mutableListOf<QuarantineEntry>()
-            var currentEntry = mutableMapOf<String, String>()
+        internal fun parseManifest(yaml: String): QuarantineManifest =
+            QuarantineManifest(splitEntryBlocks(yaml).map(::buildEntry))
+
+        private fun splitEntryBlocks(yaml: String): List<Map<String, String>> {
+            val blocks = mutableListOf<MutableMap<String, String>>()
             var inEntries = false
-            var inEntry = false
+            for (line in contentLines(yaml)) {
+                inEntries = inEntries || isEntriesKey(line)
+                appendLineToBlocks(blocks, line, inEntries)
+            }
+            return blocks
+        }
 
-            for (rawLine in yaml.lines()) {
-                val line = rawLine.trimEnd()
-                when {
-                    // Top-level "entries:" key
-                    line.trimStart() == "entries:" -> {
-                        inEntries = true
-                        continue
-                    }
-                    // New entry item (list element marker "  - ..." or "- ...")
-                    inEntries && line.trimStart().startsWith("- ") -> {
-                        if (inEntry && currentEntry.isNotEmpty()) {
-                            entries.add(buildEntry(currentEntry))
-                        }
-                        currentEntry = mutableMapOf()
-                        inEntry = true
-                        // Parse the key-value on the same line as the dash
-                        val kvPart = line.trimStart().removePrefix("- ")
-                        parseKeyValue(kvPart)?.let { (k, v) -> currentEntry[k] = v }
-                    }
-                    // Key-value line within an entry block
-                    inEntry && line.trimStart().matches(Regex("[a-zA-Z][a-zA-Z0-9]*:.*")) -> {
-                        parseKeyValue(line.trimStart())?.let { (k, v) -> currentEntry[k] = v }
-                    }
-                    // Empty line or comment — end of entry detection handled by next "- " marker
-                    line.isBlank() || line.trimStart().startsWith("#") -> continue
-                    // Any other indented line within an entry (continuation) — skip
-                    else -> continue
+        private fun appendLineToBlocks(
+            blocks: MutableList<MutableMap<String, String>>,
+            line: String,
+            inEntries: Boolean,
+        ) {
+            when {
+                !inEntries -> Unit
+                isListItem(line) -> {
+                    blocks.add(mutableMapOf())
+                    addKeyValue(blocks.last(), line.trimStart().removePrefix("- "))
                 }
+                blocks.isNotEmpty() -> addKeyValue(blocks.last(), line.trimStart())
             }
-            // Flush last entry
-            if (inEntry && currentEntry.isNotEmpty()) {
-                entries.add(buildEntry(currentEntry))
-            }
-            return QuarantineManifest(entries)
         }
 
-        private fun parseKeyValue(line: String): Pair<String, String>? {
-            val colonIdx = line.indexOf(':')
-            if (colonIdx < 0) return null
-            val key = line.substring(0, colonIdx).trim()
-            val value = line.substring(colonIdx + 1).trim().removeSurrounding("\"").removeSurrounding("'")
-            return key to value
+        private fun contentLines(yaml: String): List<String> =
+            yaml
+                .lines()
+                .map { it.trimEnd() }
+                .filter { it.isNotBlank() && !it.trimStart().startsWith("#") }
+
+        private fun isEntriesKey(line: String): Boolean = line.trimStart() == "entries:"
+
+        private fun isListItem(line: String): Boolean = line.trimStart().startsWith("- ")
+
+        private fun addKeyValue(
+            target: MutableMap<String, String>,
+            raw: String,
+        ) {
+            val colonIdx = raw.indexOf(':')
+            if (colonIdx <= 0) {
+                return
+            }
+            val key = raw.substring(0, colonIdx).trim()
+            if (!key.matches(KEY_PATTERN)) {
+                return
+            }
+            val value =
+                raw
+                    .substring(colonIdx + 1)
+                    .trim()
+                    .removeSurrounding("\"")
+                    .removeSurrounding("'")
+            target[key] = value
         }
 
-        private fun buildEntry(map: Map<String, String>): QuarantineEntry {
-            val testClass = map["testClass"] ?: error("quarantine entry missing testClass")
-            val ownerApproved = map["ownerApproved"]?.lowercase() == "true"
-            val issueUrl = map["issueUrl"] ?: ""
-            val expiresAt = map["expiresAt"] ?: ""
-            val reason = map["reason"] ?: ""
-            return QuarantineEntry(
-                testClass = testClass,
-                ownerApproved = ownerApproved,
-                issueUrl = issueUrl,
-                expiresAt = expiresAt,
-                reason = reason,
+        private fun buildEntry(map: Map<String, String>): QuarantineEntry =
+            QuarantineEntry(
+                testClass = map["testClass"] ?: error("quarantine entry missing testClass"),
+                ownerApproved = map["ownerApproved"]?.lowercase() == "true",
+                issueUrl = map["issueUrl"] ?: "",
+                expiresAt = map["expiresAt"] ?: "",
+                reason = map["reason"] ?: "",
             )
-        }
     }
 }
