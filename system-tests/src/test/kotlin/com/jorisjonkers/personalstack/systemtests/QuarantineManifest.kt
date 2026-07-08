@@ -110,9 +110,9 @@ data class QuarantineManifest(
             QuarantineEntry(
                 testClass = map["testClass"] ?: error("quarantine entry missing testClass"),
                 ownerApproved = map["ownerApproved"]?.lowercase() == "true",
-                issueUrl = map["issueUrl"] ?: "",
-                expiresAt = map["expiresAt"] ?: "",
-                reason = map["reason"] ?: "",
+                issueUrl = map["issueUrl"].orEmpty(),
+                expiresAt = map["expiresAt"].orEmpty(),
+                reason = map["reason"].orEmpty(),
             )
     }
 }
