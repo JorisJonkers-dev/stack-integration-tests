@@ -2,6 +2,10 @@ name: Full System Integration
 
 on:
   workflow_call:
+    secrets:
+      T2_HARNESS_TOKEN:
+        description: Token with contents:read on this repo for cross-repo callers
+        required: false
     inputs:
       composition-lock-path:
         required: true
@@ -56,6 +60,12 @@ jobs:
       - name: Checkout harness
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
+          # Cross-repo callers (homelab-deploy pipeline) would otherwise check
+          # out the CALLER repo here; pin the harness repo explicitly. Reading
+          # it cross-repo needs the T2_HARNESS_TOKEN secret (App/PAT with
+          # contents:read on this repo); same-repo runs fall back to the job token.
+          repository: JorisJonkers-dev/stack-integration-tests
+          token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
       - name: Download candidate artifact
@@ -122,6 +132,12 @@ jobs:
       - name: Checkout harness
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
+          # Cross-repo callers (homelab-deploy pipeline) would otherwise check
+          # out the CALLER repo here; pin the harness repo explicitly. Reading
+          # it cross-repo needs the T2_HARNESS_TOKEN secret (App/PAT with
+          # contents:read on this repo); same-repo runs fall back to the job token.
+          repository: JorisJonkers-dev/stack-integration-tests
+          token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
       # Correction #22: download candidate-lock.json from artifact (RUNNER_TEMP does not persist)
@@ -153,6 +169,12 @@ jobs:
       - name: Checkout harness
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
+          # Cross-repo callers (homelab-deploy pipeline) would otherwise check
+          # out the CALLER repo here; pin the harness repo explicitly. Reading
+          # it cross-repo needs the T2_HARNESS_TOKEN secret (App/PAT with
+          # contents:read on this repo); same-repo runs fall back to the job token.
+          repository: JorisJonkers-dev/stack-integration-tests
+          token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
       # Correction #22: download candidate-lock.json from artifact
@@ -191,6 +213,12 @@ jobs:
       - name: Checkout harness
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
+          # Cross-repo callers (homelab-deploy pipeline) would otherwise check
+          # out the CALLER repo here; pin the harness repo explicitly. Reading
+          # it cross-repo needs the T2_HARNESS_TOKEN secret (App/PAT with
+          # contents:read on this repo); same-repo runs fall back to the job token.
+          repository: JorisJonkers-dev/stack-integration-tests
+          token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
       - name: Set up Node.js
@@ -237,6 +265,12 @@ jobs:
       - name: Checkout harness
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
+          # Cross-repo callers (homelab-deploy pipeline) would otherwise check
+          # out the CALLER repo here; pin the harness repo explicitly. Reading
+          # it cross-repo needs the T2_HARNESS_TOKEN secret (App/PAT with
+          # contents:read on this repo); same-repo runs fall back to the job token.
+          repository: JorisJonkers-dev/stack-integration-tests
+          token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
       - name: cleanup-target
