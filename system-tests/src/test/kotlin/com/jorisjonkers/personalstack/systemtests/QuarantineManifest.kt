@@ -48,9 +48,7 @@ data class QuarantineManifest(
             return parseManifest(file.readText())
         }
 
-        internal fun parseManifest(yaml: String): QuarantineManifest {
-            return QuarantineManifest(splitEntryBlocks(yaml).map(::buildEntry))
-        }
+        internal fun parseManifest(yaml: String) = QuarantineManifest(splitEntryBlocks(yaml).map(::buildEntry))
 
         private fun splitEntryBlocks(yaml: String): List<Map<String, String>> {
             val blocks = mutableListOf<MutableMap<String, String>>()
