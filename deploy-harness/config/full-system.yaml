@@ -1,0 +1,9 @@
+# T2 harness configuration for full-system integration runs.
+# Managed by @JorisJonkers-dev/platform-owners (see CODEOWNERS).
+version: "1"
+concurrencyGroup: full-system-staging
+shardCount: 4
+shardBudgetMinutes: 45
+warnAtMinutes: 35
+maxAttempts: 3
+fallbackMode: real-k3s-vcluster  # alternative: k3d-installability (fail-closed, non-mergeable)

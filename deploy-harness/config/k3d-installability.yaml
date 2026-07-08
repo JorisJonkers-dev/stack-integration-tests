@@ -1,0 +1,7 @@
+# k3d installability-only fallback configuration.
+# This mode is non-mergeable — gate-summary will mark status: fail, reason: fallback-non-mergeable.
+# It exists only to validate that the candidate cluster configuration is parseable,
+# not as a substitute for the full T2 vcluster gate.
+version: "1"
+mode: k3d-installability
+nonMergeable: true
