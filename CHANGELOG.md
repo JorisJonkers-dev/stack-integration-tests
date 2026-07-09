@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.3.0...v0.4.0) (2026-07-08)
+
+
+### Features
+
+* T2 full-system harness — deploy composed candidate, then test ([#11](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/11)) ([4c4ae81](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/4c4ae8195e29c5a62bc123cdbf7c877e60b6b1fa))
+
+
+### Bug Fixes
+
+* pin harness repository in cross-repo checkouts ([#13](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/13)) ([3ccaab5](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/3ccaab523e9b147e84153a4a54836d5a16d8079d))
+
 ## [0.3.0](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.2.0...v0.3.0) (2026-06-29)
 
 
