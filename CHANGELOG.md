@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.4.0...v0.4.1) (2026-08-27)
+
+
+### Bug Fixes
+
+* **ci:** fail System Tests when no image pins are supplied ([#15](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/15)) ([2f75bf0](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/2f75bf0e587e855e92b892e769ddaa048e6c39c0))
+* **deps:** bump js-yaml to 4.3.1 for GHSA-5p4m-2wfm-xmqj ([#16](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/16)) ([6705472](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/6705472eff0343121350896e47a6cae3321e7772))
+
 ## [0.4.0](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.3.0...v0.4.0) (2026-07-08)
 
 
