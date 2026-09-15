@@ -58,3 +58,4 @@ dependencyResolutionManagement {
 }
 
 include(":system-tests")
+include(":acceptance-runner")

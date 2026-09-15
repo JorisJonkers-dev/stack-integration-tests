@@ -1,0 +1,47 @@
+# Example target config for the knowledge acceptance runner (fleet-infra#251).
+#
+# Copy this file, point baseUrl at the real hosts, and give the hindsight
+# bank / basic-memory project names that start with the safety prefix below
+# -- the runner refuses to seed anything else (see Safety.kt). --dry-run
+# additionally refuses any of the four production hosts commented below, so
+# a dry run against a stub or staging endpoint is the only thing it can do.
+
+evaluationSetPath: ../system-tests/src/test/resources/evaluation-set.json
+resultsDir: ./acceptance-runner/results
+
+safety:
+  allowedBankPrefix: eval-
+
+availabilityPoll:
+  intervalMs: 2000
+  timeoutMs: 60000
+
+targets:
+  hindsight:
+    enabled: true
+    # production: https://memory-api.jorisjonkers.dev
+    baseUrl: http://localhost:8888
+    bank: eval-acceptance-2026-09-15
+    apiKeyEnv: HINDSIGHT_API_KEY
+    # Confirm these three paths against the live Hindsight v0.9.2 API
+    # (`/docs`) before the real run -- this is this runner's best-effort
+    # default for a bank/memory-shaped REST API, overridable here without a
+    # code change once the real shape is confirmed.
+    endpoints:
+      seed: /v1/banks/{bank}/memories
+      query: /v1/banks/{bank}/query
+      deleteOne: /v1/banks/{bank}/memories/{id}
+
+  basicMemory:
+    enabled: true
+    # production: https://memory-mcp.jorisjonkers.dev
+    baseUrl: http://localhost:8000
+    mcpPath: /mcp
+    project: eval-acceptance-2026-09-15
+    apiKeyEnv: BASIC_MEMORY_TOKEN
+
+comparison:
+  knowledgeApi:
+    enabled: true
+    # production: https://kb.jorisjonkers.dev
+    baseUrl: http://localhost:8090
