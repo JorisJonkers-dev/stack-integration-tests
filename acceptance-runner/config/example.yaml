@@ -5,6 +5,15 @@
 # -- the runner refuses to seed anything else (see Safety.kt). --dry-run
 # additionally refuses any of the four production hosts commented below, so
 # a dry run against a stub or staging endpoint is the only thing it can do.
+#
+# Network placement: the public *.jorisjonkers.dev hosts below are gated by
+# Traefik's forward-auth middleware, whose verify chain is session-cookie
+# only -- no bearer token (apiKeyEnv) can pass it, so a real run from a
+# workstation gets a clean 302/403 on every call, not a wiring bug. baseUrl
+# below is the in-cluster ClusterIP service instead: run the acceptance
+# runner from a Job/Pod inside the cluster (knowledge-platform-system for
+# hindsight/basicMemory, knowledge-system for knowledgeApi), where
+# forward-auth is never in the path.
 
 evaluationSetPath: ../system-tests/src/test/resources/evaluation-set.json
 resultsDir: ./acceptance-runner/results
@@ -19,7 +28,10 @@ availabilityPoll:
 targets:
   hindsight:
     enabled: true
-    # production: https://memory-api.jorisjonkers.dev
+    # public host (forward-auth gated, unreachable with a bearer token -- do
+    # not point a real run here): https://memory-api.jorisjonkers.dev
+    # real run, from inside the cluster:
+    # baseUrl: http://hindsight-api.knowledge-platform-system.svc.cluster.local:8888
     baseUrl: http://localhost:8888
     bank: eval-acceptance-2026-09-15
     apiKeyEnv: HINDSIGHT_API_KEY
@@ -34,7 +46,10 @@ targets:
 
   basicMemory:
     enabled: true
-    # production: https://memory-mcp.jorisjonkers.dev
+    # public host (forward-auth gated, unreachable with a bearer token -- do
+    # not point a real run here): https://memory-mcp.jorisjonkers.dev
+    # real run, from inside the cluster:
+    # baseUrl: http://basic-memory.knowledge-platform-system.svc.cluster.local:8000
     baseUrl: http://localhost:8000
     mcpPath: /mcp
     project: eval-acceptance-2026-09-15
@@ -43,5 +58,8 @@ targets:
 comparison:
   knowledgeApi:
     enabled: true
-    # production: https://kb.jorisjonkers.dev
+    # public host (forward-auth gated on non-/mcp paths, unreachable
+    # unauthenticated -- do not point a real run here): https://kb.jorisjonkers.dev
+    # real run, from inside the cluster:
+    # baseUrl: http://knowledge-api.knowledge-system.svc.cluster.local:8080
     baseUrl: http://localhost:8090

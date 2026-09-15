@@ -15,6 +15,16 @@ import java.time.Instant
  * the live OpenAPI (`/docs`) before the real run and override them in the
  * target config if they differ. That confirmation is the "wiring" this
  * ticket explicitly defers.
+ *
+ * A bearer token in `apiKeyEnv` only ever authenticates this client to
+ * Hindsight itself. `memory-api.jorisjonkers.dev` sits behind Traefik's
+ * forward-auth middleware, whose verify chain
+ * (`services/auth-api` `SecurityConfig.forwardAuthSecurityFilterChain`) is
+ * session-cookie only and 302s anything else before the request reaches
+ * Hindsight at all — no bearer token can satisfy it. Point `baseUrl` at the
+ * in-cluster `hindsight-api.knowledge-platform-system.svc.cluster.local:8888`
+ * service instead (reachable only from a Job/Pod inside the cluster), which
+ * forward-auth never sits in front of.
  */
 class HindsightClient(
     private val config: HindsightTargetConfig,

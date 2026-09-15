@@ -7,11 +7,19 @@ plugins {
 }
 
 // The committed evaluation set lives in system-tests (fleet-infra#251 AC-1) and
-// is not duplicated here: it is published onto this module's own classpath as
-// a resource so the single committed copy stays the only source of truth.
+// is not duplicated here: this task copies just that one file onto this
+// module's classpath, so any other fixture system-tests later adds to that
+// directory is never pulled into acceptance-runner's packaged jar/install image.
+val copyEvaluationSet by tasks.registering(Copy::class) {
+    from("../system-tests/src/test/resources") {
+        include("evaluation-set.json")
+    }
+    into(layout.buildDirectory.dir("generated/resources/evaluationSet"))
+}
+
 sourceSets {
     main {
-        resources.srcDir("../system-tests/src/test/resources")
+        resources.srcDir(copyEvaluationSet)
     }
 }
 

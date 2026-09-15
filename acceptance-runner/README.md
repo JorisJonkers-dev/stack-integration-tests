@@ -15,6 +15,30 @@ This module is tooling: it does not run against the live platform by itself.
 Someone runs it, pointed at a config, when the pilot (#250) and the
 acceptance run (#251) are ready.
 
+## Network placement
+
+The public `*.jorisjonkers.dev` hosts for these targets sit behind Traefik's
+forward-auth middleware, whose verify chain (`services/auth-api`
+`SecurityConfig.forwardAuthSecurityFilterChain`) accepts an estate session
+cookie only and 302s everything else before the request reaches the target
+at all. This runner authenticates with a bearer token (`apiKeyEnv`) or
+nothing, so **a real run pointed at a public host fails every call with a
+302/403 that has nothing to do with the endpoint-path uncertainty discussed
+below** — it never reaches Hindsight, Basic Memory or knowledge-api.
+
+Point `baseUrl` at the in-cluster ClusterIP service instead, and run the
+acceptance runner from a Job/Pod inside the cluster (`knowledge-platform-system`
+for `hindsight`/`basicMemory`, `knowledge-system` for `knowledgeApi`), where
+forward-auth is never in the path:
+
+| target | in-cluster `baseUrl` |
+|---|---|
+| `targets.hindsight` | `http://hindsight-api.knowledge-platform-system.svc.cluster.local:8888` |
+| `targets.basicMemory` | `http://basic-memory.knowledge-platform-system.svc.cluster.local:8000` |
+| `comparison.knowledgeApi` | `http://knowledge-api.knowledge-system.svc.cluster.local:8080` |
+
+See `config/example.yaml` for both forms side by side.
+
 ## Safety
 
 - **Bank/project prefix guard.** `assertSafeToSeed` refuses to run unless

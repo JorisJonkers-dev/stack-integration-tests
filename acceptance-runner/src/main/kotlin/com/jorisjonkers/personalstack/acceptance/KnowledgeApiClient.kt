@@ -14,6 +14,13 @@ import java.nio.charset.StandardCharsets
  * Both paths are real, verified endpoints (`services/knowledge/api`), not
  * guesses: `/recall` for querying, `/review/summary` (`inbox.total`) as the
  * backlog proxy — the count of notes still awaiting review.
+ *
+ * `kb.jorisjonkers.dev`'s non-`/mcp` paths sit behind Traefik's forward-auth
+ * middleware, which is session-cookie only and 302s an unauthenticated
+ * request before it reaches knowledge-api — this client sends no
+ * credential at all, so it cannot pass that gate. Point `baseUrl` at the
+ * in-cluster `knowledge-api.knowledge-system.svc.cluster.local:8080`
+ * service instead (reachable only from a Job/Pod inside the cluster).
  */
 class KnowledgeApiClient(
     private val config: KnowledgeApiTargetConfig,

@@ -16,6 +16,14 @@ import java.time.Instant
  * [seed] embeds the fixture's own id in both the title and the body, and
  * [query] recovers ids by scanning the free-form search text it returns —
  * that only works because every fixture id looks like `eval-NNN-xx`.
+ *
+ * `memory-mcp.jorisjonkers.dev` sits behind Traefik's forward-auth
+ * middleware, which is session-cookie only (`services/auth-api`
+ * `SecurityConfig.forwardAuthSecurityFilterChain`) and 302s any request
+ * without one — a bearer token in `apiKeyEnv` cannot pass it. Point
+ * `baseUrl` at the in-cluster
+ * `basic-memory.knowledge-platform-system.svc.cluster.local:8000` service
+ * instead (reachable only from a Job/Pod inside the cluster).
  */
 class BasicMemoryClient(
     private val config: BasicMemoryTargetConfig,
