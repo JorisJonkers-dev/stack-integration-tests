@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.4.1...v0.5.0) (2026-09-21)
+
+
+### Features
+
+* **acceptance-runner:** add the knowledge acceptance runner ([#22](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/22)) ([9f81a4e](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/9f81a4ec49422f7d3d9a68f2d08387d327148b5b))
+
 ## [0.4.1](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.4.0...v0.4.1) (2026-08-27)
 
 
