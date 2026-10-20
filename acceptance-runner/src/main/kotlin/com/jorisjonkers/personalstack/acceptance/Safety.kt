@@ -13,7 +13,6 @@ private val KNOWN_PRODUCTION_HOSTS =
         "memory.jorisjonkers.dev",
         "memory-api.jorisjonkers.dev",
         "memory-mcp.jorisjonkers.dev",
-        "kb.jorisjonkers.dev",
     )
 
 /**
@@ -48,7 +47,6 @@ fun assertOfflineSafe(config: AcceptanceConfig) {
     listOfNotNull(
         config.hindsight?.takeIf { it.enabled }?.baseUrl,
         config.basicMemory?.takeIf { it.enabled }?.baseUrl,
-        config.knowledgeApi?.takeIf { it.enabled }?.baseUrl,
     ).forEach(::assertNotProductionHost)
 }
 

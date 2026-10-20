@@ -14,8 +14,7 @@ private data class TimedQueryOutcome(
 /**
  * Orchestrates one acceptance run: seed fixtures into every enabled seeded
  * target, wait for them to become recallable, run the evaluation queries,
- * score the result, and clean every fixture back out again — then do the
- * same (query-only) against the knowledge-api comparison target.
+ * score the result, and clean every fixture back out again.
  */
 object AcceptanceRunner {
     fun run(
@@ -43,10 +42,6 @@ object AcceptanceRunner {
                 config.basicMemory
                     ?.takeIf { it.enabled }
                     ?.let { runSeeded(BasicMemoryClient(it), evaluationSet, config.availabilityPoll) },
-            knowledgeApi =
-                config.knowledgeApi
-                    ?.takeIf { it.enabled }
-                    ?.let { runComparison(KnowledgeApiClient(it), evaluationSet) },
         )
     }
 
@@ -183,26 +178,5 @@ object AcceptanceRunner {
                 durationMs = result.durationMs,
                 tokenUsage = result.tokenUsage,
             )
-        }
-
-    private fun runComparison(
-        client: ComparisonTargetClient,
-        evaluationSet: EvaluationSet,
-    ): TargetOutcome<ComparisonTargetReport> =
-        try {
-            val timed = evaluationSet.queries.map { query -> query.id to client.query(query.query) }
-            TargetOutcome(
-                report =
-                    ComparisonTargetReport(
-                        note =
-                            "existing corpus, not seeded with this evaluation set: recall and misleading-memory " +
-                                "are not computed here, only latency and backlog, which are directly comparable",
-                        queryLatency = summarizeLatencies(timed.map { (_, result) -> result.durationMs }),
-                        backlog = client.backlog(),
-                        perQuery = timed.map { (id, result) -> ComparisonQueryOutcome(id, result.recalledNoteIds) },
-                    ),
-            )
-        } catch (ex: TargetHttpError) {
-            TargetOutcome(error = ex.message)
         }
 }

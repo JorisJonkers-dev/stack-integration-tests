@@ -31,7 +31,6 @@ private fun renderMarkdown(report: AcceptanceReport): String {
         )
     report.hindsight?.let { lines += renderSeededSection("hindsight", it) }
     report.basicMemory?.let { lines += renderSeededSection("basic-memory", it) }
-    report.knowledgeApi?.let { lines += renderComparisonSection("knowledge-api (comparison)", it) }
     return lines.joinToString("\n")
 }
 
@@ -53,22 +52,6 @@ private fun renderSeededSection(
                 "- token cost: ${r.tokenUsage.totalTokens?.toString() ?: "not reported by this target"}",
                 "- cleanup: deleted ${r.cleanup.attempted - r.cleanup.failed.size}/${r.cleanup.attempted}",
                 manualReviewLine(r.manualReviewRequired),
-            )
-        } ?: listOf("FAILED: ${outcome.error}")
-    return listOf(header, "") + body + listOf("")
-}
-
-private fun renderComparisonSection(
-    name: String,
-    outcome: TargetOutcome<ComparisonTargetReport>,
-): List<String> {
-    val header = "## $name"
-    val body =
-        outcome.report?.let { r ->
-            listOf(
-                "- ${r.note}",
-                "- query latency p50/p95: ${fmtMs(r.queryLatency.p50Ms)} / ${fmtMs(r.queryLatency.p95Ms)}",
-                "- backlog: ${r.backlog ?: "n/a"}",
             )
         } ?: listOf("FAILED: ${outcome.error}")
     return listOf(header, "") + body + listOf("")

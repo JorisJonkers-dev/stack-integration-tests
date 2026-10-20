@@ -33,12 +33,3 @@ interface SeededTargetClient {
     /** Outstanding-work count, or null when the target has no such concept. */
     fun backlog(): Int? = null
 }
-
-/** A read-only target the runner only queries for comparison — knowledge-api. */
-interface ComparisonTargetClient {
-    val name: String
-
-    fun query(text: String): QueryResult
-
-    fun backlog(): Int? = null
-}

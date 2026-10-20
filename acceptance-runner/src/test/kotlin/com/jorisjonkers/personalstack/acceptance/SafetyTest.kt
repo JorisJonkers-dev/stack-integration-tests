@@ -81,6 +81,5 @@ class SafetyTest {
                     apiKeyEnv = null,
                     timeoutMs = 1_000,
                 ),
-            knowledgeApi = null,
         )
 }
