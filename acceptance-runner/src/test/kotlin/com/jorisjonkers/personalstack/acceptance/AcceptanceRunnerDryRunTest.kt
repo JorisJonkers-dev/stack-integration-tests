@@ -2,7 +2,6 @@ package com.jorisjonkers.personalstack.acceptance
 
 import com.jorisjonkers.personalstack.acceptance.stub.FakeBasicMemoryServer
 import com.jorisjonkers.personalstack.acceptance.stub.FakeHindsightServer
-import com.jorisjonkers.personalstack.acceptance.stub.FakeKnowledgeApiServer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
@@ -15,20 +14,18 @@ private const val HTTP_TIMEOUT_MS = 5_000L
 
 /**
  * Runs the whole pipeline — seed, poll for availability, query, score,
- * clean up, write results — against three in-process stub servers, with no
+ * clean up, write results — against two in-process stub servers, with no
  * real network call. This is the "--dry-run/offline mode tested in CI
  * against stubbed HTTP" fleet-infra #251 asks for.
  */
 class AcceptanceRunnerDryRunTest {
     private val hindsightServer: FakeHindsightServer = FakeHindsightServer().start()
     private val basicMemoryServer: FakeBasicMemoryServer = FakeBasicMemoryServer().start()
-    private val knowledgeApiServer: FakeKnowledgeApiServer = FakeKnowledgeApiServer().start()
 
     @AfterEach
     fun stop() {
         hindsightServer.stop()
         basicMemoryServer.stop()
-        knowledgeApiServer.stop()
     }
 
     @Test
@@ -48,10 +45,6 @@ class AcceptanceRunnerDryRunTest {
         assertThat(basicMemory).isNotNull
         assertThat(basicMemory!!.cleanup.failed).isEmpty()
         assertThat(basicMemoryServer.requests.count { it.body.contains("delete_note") }).isEqualTo(2)
-
-        val comparison = report.knowledgeApi?.report
-        assertThat(comparison).isNotNull
-        assertThat(comparison!!.perQuery).hasSize(2)
 
         val tempDir = Files.createTempDirectory("acceptance-dry-run")
         val written = writeResults(tempDir, report)
@@ -102,12 +95,6 @@ class AcceptanceRunnerDryRunTest {
                     mcpPath = "/mcp",
                     project = "eval-test-project",
                     apiKeyEnv = null,
-                    timeoutMs = HTTP_TIMEOUT_MS,
-                ),
-            knowledgeApi =
-                KnowledgeApiTargetConfig(
-                    enabled = true,
-                    baseUrl = knowledgeApiServer.baseUrl,
                     timeoutMs = HTTP_TIMEOUT_MS,
                 ),
         )

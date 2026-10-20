@@ -51,7 +51,6 @@ class ResultsWriterTest {
                             ),
                     ),
                 basicMemory = TargetOutcome(error = "connection refused"),
-                knowledgeApi = null,
             )
 
         val written = writeResults(tempDir, report)

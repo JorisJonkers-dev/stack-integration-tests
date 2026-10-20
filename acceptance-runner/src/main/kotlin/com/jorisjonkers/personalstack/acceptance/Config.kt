@@ -52,12 +52,6 @@ data class BasicMemoryTargetConfig(
     val timeoutMs: Long,
 )
 
-data class KnowledgeApiTargetConfig(
-    val enabled: Boolean,
-    val baseUrl: String,
-    val timeoutMs: Long,
-)
-
 data class AcceptanceConfig(
     val evaluationSetPath: String?,
     val resultsDir: String,
@@ -65,7 +59,6 @@ data class AcceptanceConfig(
     val availabilityPoll: AvailabilityPollConfig,
     val hindsight: HindsightTargetConfig?,
     val basicMemory: BasicMemoryTargetConfig?,
-    val knowledgeApi: KnowledgeApiTargetConfig?,
 )
 
 /**
@@ -98,7 +91,6 @@ object AcceptanceConfigLoader {
         val safetyMap = asMap(doc["safety"]).orEmpty()
         val pollMap = asMap(doc["availabilityPoll"]).orEmpty()
         val targetsMap = asMap(doc["targets"]).orEmpty()
-        val comparisonMap = asMap(doc["comparison"]).orEmpty()
         val allowedBankPrefix = safetyMap["allowedBankPrefix"] as? String ?: SafetyConfig.DEFAULT_ALLOWED_PREFIX
         return AcceptanceConfig(
             evaluationSetPath = doc["evaluationSetPath"] as? String,
@@ -111,7 +103,6 @@ object AcceptanceConfigLoader {
                 ),
             hindsight = buildHindsight(asMap(targetsMap["hindsight"]), sourceName),
             basicMemory = buildBasicMemory(asMap(targetsMap["basicMemory"]), sourceName),
-            knowledgeApi = buildKnowledgeApi(asMap(comparisonMap["knowledgeApi"]), sourceName),
         )
     }
 
@@ -148,18 +139,6 @@ object AcceptanceConfigLoader {
             mcpPath = map["mcpPath"] as? String ?: DEFAULT_MCP_PATH,
             project = requireField(map, "project", "targets.basicMemory", sourceName),
             apiKeyEnv = map["apiKeyEnv"] as? String,
-            timeoutMs = longOrDefault(map["timeoutMs"], DEFAULT_TIMEOUT_MS),
-        )
-    }
-
-    private fun buildKnowledgeApi(
-        map: Map<String, Any?>?,
-        sourceName: String,
-    ): KnowledgeApiTargetConfig? {
-        if (map == null) return null
-        return KnowledgeApiTargetConfig(
-            enabled = map["enabled"] as? Boolean ?: true,
-            baseUrl = requireField(map, "baseUrl", "comparison.knowledgeApi", sourceName),
             timeoutMs = longOrDefault(map["timeoutMs"], DEFAULT_TIMEOUT_MS),
         )
     }

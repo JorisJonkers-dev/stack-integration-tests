@@ -24,9 +24,6 @@ targets:
   basicMemory:
     baseUrl: http://localhost:8000
     project: eval-project
-comparison:
-  knowledgeApi:
-    baseUrl: http://localhost:8090
 """
 
 class ConfigTest {
@@ -42,7 +39,6 @@ class ConfigTest {
         assertThat(config.hindsight?.bank).isEqualTo("eval-bank")
         assertThat(config.hindsight?.apiKeyEnv).isEqualTo("HINDSIGHT_API_KEY")
         assertThat(config.basicMemory?.project).isEqualTo("eval-project")
-        assertThat(config.knowledgeApi?.baseUrl).isEqualTo("http://localhost:8090")
     }
 
     @Test
@@ -64,7 +60,6 @@ class ConfigTest {
         val config = parse("resultsDir: ./results\n")
         assertThat(config.hindsight).isNull()
         assertThat(config.basicMemory).isNull()
-        assertThat(config.knowledgeApi).isNull()
     }
 
     @Test

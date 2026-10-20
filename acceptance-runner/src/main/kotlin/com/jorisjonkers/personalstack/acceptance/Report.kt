@@ -28,18 +28,6 @@ data class SeededTargetReport(
     val perQuery: List<QueryOutcome>,
 )
 
-data class ComparisonQueryOutcome(
-    val queryId: String,
-    val recalledNoteIds: List<String>,
-)
-
-data class ComparisonTargetReport(
-    val note: String,
-    val queryLatency: LatencySummary,
-    val backlog: Int?,
-    val perQuery: List<ComparisonQueryOutcome>,
-)
-
 data class WrittenResults(
     val jsonPath: Path,
     val markdownPath: Path,
@@ -49,5 +37,4 @@ data class AcceptanceReport(
     val metadata: AcceptanceMetadata,
     val hindsight: TargetOutcome<SeededTargetReport>? = null,
     val basicMemory: TargetOutcome<SeededTargetReport>? = null,
-    val knowledgeApi: TargetOutcome<ComparisonTargetReport>? = null,
 )

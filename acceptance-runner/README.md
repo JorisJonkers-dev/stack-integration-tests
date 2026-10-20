@@ -7,9 +7,7 @@ capture-to-availability / backlog / token cost, cleans up what it seeded,
 and writes the result to a JSON + Markdown file pair.
 
 Two targets are seeded and scored: Hindsight (memory bank) and Basic Memory
-(MCP project). A third, knowledge-api, is queried read-only for comparison
-against its own existing corpus — it is never seeded by this runner, so its
-report carries latency and backlog but not recall/misleading-memory scores.
+(MCP project).
 
 This module is tooling: it does not run against the live platform by itself.
 Someone runs it, pointed at a config, when the pilot (#250) and the
@@ -24,18 +22,16 @@ cookie only and 302s everything else before the request reaches the target
 at all. This runner authenticates with a bearer token (`apiKeyEnv`) or
 nothing, so **a real run pointed at a public host fails every call with a
 302/403 that has nothing to do with the endpoint-path uncertainty discussed
-below** — it never reaches Hindsight, Basic Memory or knowledge-api.
+below** — it never reaches Hindsight or Basic Memory.
 
 Point `baseUrl` at the in-cluster ClusterIP service instead, and run the
 acceptance runner from a Job/Pod inside the cluster (`knowledge-platform-system`
-for `hindsight`/`basicMemory`, `knowledge-system` for `knowledgeApi`), where
-forward-auth is never in the path:
+for `hindsight`/`basicMemory`), where forward-auth is never in the path:
 
 | target | in-cluster `baseUrl` |
 |---|---|
 | `targets.hindsight` | `http://hindsight-api.knowledge-platform-system.svc.cluster.local:8888` |
 | `targets.basicMemory` | `http://basic-memory.knowledge-platform-system.svc.cluster.local:8000` |
-| `comparison.knowledgeApi` | `http://knowledge-api.knowledge-system.svc.cluster.local:8080` |
 
 See `config/example.yaml` for both forms side by side.
 
@@ -48,8 +44,7 @@ See `config/example.yaml` for both forms side by side.
 - **`--dry-run` production-host guard.** `assertOfflineSafe` additionally
   refuses to run if any enabled target's `baseUrl` host is one of the
   estate's known production hosts (`memory.jorisjonkers.dev`,
-  `memory-api.jorisjonkers.dev`, `memory-mcp.jorisjonkers.dev`,
-  `kb.jorisjonkers.dev`). A dry run can only ever reach a stub or staging
+  `memory-api.jorisjonkers.dev`, `memory-mcp.jorisjonkers.dev`). A dry run can only ever reach a stub or staging
   endpoint.
 - **Cleanup always runs.** Every note the runner seeds is tracked and
   deleted again at the end of that target's run, even if a later step threw.
@@ -76,8 +71,8 @@ actually wired up (that wiring is explicitly out of scope here).
 
 `./gradlew :acceptance-runner:check` runs the whole suite, including
 `AcceptanceRunnerDryRunTest`, which drives the full seed → poll → query →
-score → clean up → write-results pipeline against three in-process stub
-HTTP servers (`src/test/.../stub/`) standing in for Hindsight, Basic
-Memory's MCP endpoint, and knowledge-api. No network call leaves the JVM.
+score → clean up → write-results pipeline against two in-process stub
+HTTP servers (`src/test/.../stub/`) standing in for Hindsight and Basic
+Memory's MCP endpoint. No network call leaves the JVM.
 That test is this module's "--dry-run/offline mode tested in CI against
 stubbed HTTP".

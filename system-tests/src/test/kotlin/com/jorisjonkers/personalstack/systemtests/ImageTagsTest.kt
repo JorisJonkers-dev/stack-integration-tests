@@ -9,7 +9,7 @@ class ImageTagsTest {
     fun `parses explicit service tags`() {
         val tags =
             stackImageTags(
-                "auth-api=v0.1.0 auth-ui=v0.1.0 home-portal=v0.1.0 knowledge-api=v0.1.0 " +
+                "auth-api=v0.1.0 auth-ui=v0.1.0 home-portal=v0.1.0 " +
                     "agents-api=v0.16.0 agents-ui=v0.16.0 agent-runtime=v0.16.0",
             )
 
@@ -25,7 +25,6 @@ class ImageTagsTest {
                 ghcr.io/jorisjonkers-dev/auth-api:v0.1.0
                 ghcr.io/jorisjonkers-dev/auth-ui:v0.1.0
                 ghcr.io/jorisjonkers-dev/home-portal:v0.1.0
-                ghcr.io/jorisjonkers-dev/knowledge-api:v0.1.0
                 ghcr.io/jorisjonkers-dev/agents-api:v0.16.0
                 ghcr.io/jorisjonkers-dev/agents-ui:v0.16.0
                 ghcr.io/jorisjonkers-dev/agent-runtime:v0.16.0
@@ -46,7 +45,6 @@ class ImageTagsTest {
                 ghcr.io/jorisjonkers-dev/auth-api:v0.1.0
                 ghcr.io/jorisjonkers-dev/auth-ui:v0.1.0
                 ghcr.io/jorisjonkers-dev/home-portal:v0.1.0
-                ghcr.io/jorisjonkers-dev/knowledge-api:v0.1.0
                 ghcr.io/jorisjonkers-dev/agents-api:v0.16.0
                 ghcr.io/jorisjonkers-dev/agents-ui:v0.16.0
                 ghcr.io/jorisjonkers-dev/agent-runtime:v0.16.0

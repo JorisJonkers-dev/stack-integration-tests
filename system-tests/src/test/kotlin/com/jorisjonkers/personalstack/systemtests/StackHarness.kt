@@ -7,13 +7,12 @@ val stackImageServices: Set<String> =
         "auth-api",
         "auth-ui",
         "home-portal",
-        "knowledge-api",
         "agents-api",
         "agents-ui",
         "agent-runtime",
     )
 
-val stackImageAliases: Map<String, String> = mapOf("knowledge" to "knowledge-api")
+val stackImageAliases: Map<String, String> = emptyMap()
 
 fun stackImageTags(raw: String): ImageTags =
     ImageTags.parse(

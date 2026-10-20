@@ -8,7 +8,6 @@ These tests cover the deployed service set:
 
 - `auth-api` — registration, login, TOTP, session management, forward-auth chain
 - `auth-ui` / `home-portal` — Playwright flows for login, logout, protected pages, cross-app session
-- `knowledge-api` — smoke coverage hooks for the published service image
 - `agents-api` / `agents-ui` / `agent-runtime` — tag pins accepted for deploy-gate runs
 - Traefik routing — health check accessibility, security headers, forward-auth redirects
 - OIDC downstream services — Vault, n8n, Grafana native OIDC flows
