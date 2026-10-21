@@ -1,6 +1,6 @@
 [versions]
-jorisjonkers-conventions = "0.7.0"
-kotlin-spring-commons = "0.8.0"
+jorisjonkers-conventions = "0.7.1"
+kotlin-spring-commons = "0.11.0"
 
 [libraries]
 kotlin-commons-system-test-harness = { module = "dev.jorisjonkers:kotlin-commons-system-test-harness", version.ref = "kotlin-spring-commons" }
