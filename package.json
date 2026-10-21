@@ -8,6 +8,6 @@
     "test": "node --test 'deploy-harness/tests/**/*.mjs'"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "4.3.1"
   }
 }
