@@ -14,7 +14,7 @@ permissions:
 jobs:
   jvm:
     name: JVM
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.10.2
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@618d5851b22d2c46d4234deaa07e0f1950e2b65d # v0.34.3
     with:
       lint-gradle-args: >-
         :system-tests:detektMain :system-tests:detektTest :system-tests:ktlintCheck
@@ -25,7 +25,7 @@ jobs:
 
   image-tags:
     name: IMAGE_TAGS Contract
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.10.2
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@618d5851b22d2c46d4234deaa07e0f1950e2b65d # v0.34.3
     with:
       lint-gradle-args: help
       test-gradle-args: >-
