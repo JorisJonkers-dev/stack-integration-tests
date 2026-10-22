@@ -58,7 +58,7 @@ jobs:
     steps:
       # Split checkouts: harness repo to harness/, candidate artifact to candidate/ (lens C6-fidelity)
       - name: Checkout harness
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           # Cross-repo callers (homelab-deploy pipeline) would otherwise check
           # out the CALLER repo here; pin the harness repo explicitly. Reading
@@ -69,7 +69,7 @@ jobs:
           path: harness/
 
       - name: Download candidate artifact
-        uses: actions/download-artifact@fa0a91b85d4f404e444306234a19c2bf56b5d63c  # v4.1.8
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
           name: ${{ inputs.candidate-artifact-name }}
           path: candidate/
@@ -85,7 +85,7 @@ jobs:
       # Correction #22: upload candidate-lock.json as artifact so test suite jobs can download it.
       # RUNNER_TEMP does not persist across jobs.
       - name: Upload candidate lock
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: candidate-lock-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/candidate-lock.json
@@ -130,7 +130,7 @@ jobs:
     runs-on: self-hosted-k3s-t2
     steps:
       - name: Checkout harness
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           # Cross-repo callers (homelab-deploy pipeline) would otherwise check
           # out the CALLER repo here; pin the harness repo explicitly. Reading
@@ -142,7 +142,7 @@ jobs:
 
       # Correction #22: download candidate-lock.json from artifact (RUNNER_TEMP does not persist)
       - name: Download candidate lock
-        uses: actions/download-artifact@fa0a91b85d4f404e444306234a19c2bf56b5d63c  # v4.1.8
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
           name: candidate-lock-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/
@@ -167,7 +167,7 @@ jobs:
         shard: [1, 2, 3, 4]
     steps:
       - name: Checkout harness
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           # Cross-repo callers (homelab-deploy pipeline) would otherwise check
           # out the CALLER repo here; pin the harness repo explicitly. Reading
@@ -179,7 +179,7 @@ jobs:
 
       # Correction #22: download candidate-lock.json from artifact
       - name: Download candidate lock
-        uses: actions/download-artifact@fa0a91b85d4f404e444306234a19c2bf56b5d63c  # v4.1.8
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
           name: candidate-lock-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/
@@ -196,7 +196,7 @@ jobs:
 
       - name: Upload shard artifacts
         if: always()
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: playwright-shard-${{ matrix.shard }}-artifacts
           path: harness/system-tests/build/reports/playwright-shard-${{ matrix.shard }}/
@@ -211,7 +211,7 @@ jobs:
       gate-summary-artifact: ${{ steps.emit.outputs.gate-summary-artifact }}
     steps:
       - name: Checkout harness
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           # Cross-repo callers (homelab-deploy pipeline) would otherwise check
           # out the CALLER repo here; pin the harness repo explicitly. Reading
@@ -222,7 +222,7 @@ jobs:
           path: harness/
 
       - name: Set up Node.js
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e  # v4.3.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
         with:
           node-version: '20'
 
@@ -247,7 +247,7 @@ jobs:
           FLAKY_CANDIDATES_JSON: ${{ steps.rerun.outputs.flaky-candidates-json }}
 
       - name: Upload gate summary
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: gate-summary-stack-integration-gate
           path: gate-summary.json
@@ -263,7 +263,7 @@ jobs:
     if: always()  # guaranteed teardown (lens C6-fidelity/flake)
     steps:
       - name: Checkout harness
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           # Cross-repo callers (homelab-deploy pipeline) would otherwise check
           # out the CALLER repo here; pin the harness repo explicitly. Reading
