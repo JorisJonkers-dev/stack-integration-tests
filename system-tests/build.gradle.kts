@@ -10,16 +10,16 @@ plugins {
 
 dependencies {
     testImplementation(libs.kotlin.commons.system.test.harness)
-    testImplementation("io.rest-assured:rest-assured:6.0.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
+    testImplementation("io.rest-assured:rest-assured:6.2.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.testcontainers:testcontainers:2.0.5")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.5")
     testImplementation("dev.turingcomplete:kotlin-onetimepassword:3.0.0")
-    testImplementation("commons-codec:commons-codec:1.22.0")
-    testRuntimeOnly("org.postgresql:postgresql:42.7.11")
-    testImplementation("com.microsoft.playwright:playwright:1.60.0")
+    testImplementation("commons-codec:commons-codec:1.23.0")
+    testRuntimeOnly("org.postgresql:postgresql:42.7.14")
+    testImplementation("com.microsoft.playwright:playwright:1.63.0")
 }
 
 val testSourceSet = extensions.getByType(SourceSetContainer::class.java).getByName("test")
