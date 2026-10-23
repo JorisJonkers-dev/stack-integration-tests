@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.5.0...v0.5.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** pin dependency js-yaml to 4.3.1 ([#24](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/24)) ([3ed401d](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/3ed401d33b2db87d86066f39298be4c7e8d208d8))
+
 ## [0.5.0](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.4.1...v0.5.0) (2026-10-20)
 
 
