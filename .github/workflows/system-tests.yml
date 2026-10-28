@@ -35,7 +35,7 @@ jobs:
   non-playwright:
     name: Non-Playwright System Tests
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f2180a482b63756affde537233881fa12e65df70 # v0.35.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@16d241e44f03c5cc4696d2d0de615717a61ef3c0 # v0.36.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -47,7 +47,7 @@ jobs:
   playwright-1:
     name: Playwright System Tests 1/4
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f2180a482b63756affde537233881fa12e65df70 # v0.35.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@16d241e44f03c5cc4696d2d0de615717a61ef3c0 # v0.36.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -61,7 +61,7 @@ jobs:
   playwright-2:
     name: Playwright System Tests 2/4
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f2180a482b63756affde537233881fa12e65df70 # v0.35.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@16d241e44f03c5cc4696d2d0de615717a61ef3c0 # v0.36.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -75,7 +75,7 @@ jobs:
   playwright-3:
     name: Playwright System Tests 3/4
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f2180a482b63756affde537233881fa12e65df70 # v0.35.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@16d241e44f03c5cc4696d2d0de615717a61ef3c0 # v0.36.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -89,7 +89,7 @@ jobs:
   playwright-4:
     name: Playwright System Tests 4/4
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f2180a482b63756affde537233881fa12e65df70 # v0.35.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@16d241e44f03c5cc4696d2d0de615717a61ef3c0 # v0.36.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
