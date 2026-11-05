@@ -24,9 +24,9 @@ sourceSets {
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.11.0")
-    implementation("org.yaml:snakeyaml:2.3")
-    testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
+    implementation("com.google.code.gson:gson:2.15.0")
+    implementation("org.yaml:snakeyaml:2.7")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:3.27.7")
 }
