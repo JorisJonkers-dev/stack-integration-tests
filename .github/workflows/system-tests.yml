@@ -35,19 +35,21 @@ jobs:
   non-playwright:
     name: Non-Playwright System Tests
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
         :system-tests:testNonPlaywright
         -Dtest.image-tags='${{ inputs.image-tags }}'
+      require-package-proxy: true
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
 
   playwright-1:
     name: Playwright System Tests 1/4
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -55,13 +57,15 @@ jobs:
         -Dtest.image-tags='${{ inputs.image-tags }}'
         -Dtest.shard.index=1
         -Dtest.shard.count=4
+      require-package-proxy: true
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
 
   playwright-2:
     name: Playwright System Tests 2/4
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -69,13 +73,15 @@ jobs:
         -Dtest.image-tags='${{ inputs.image-tags }}'
         -Dtest.shard.index=2
         -Dtest.shard.count=4
+      require-package-proxy: true
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
 
   playwright-3:
     name: Playwright System Tests 3/4
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -83,13 +89,15 @@ jobs:
         -Dtest.image-tags='${{ inputs.image-tags }}'
         -Dtest.shard.index=3
         -Dtest.shard.count=4
+      require-package-proxy: true
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
 
   playwright-4:
     name: Playwright System Tests 4/4
     needs: validate-inputs
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -97,8 +105,10 @@ jobs:
         -Dtest.image-tags='${{ inputs.image-tags }}'
         -Dtest.shard.index=4
         -Dtest.shard.count=4
+      require-package-proxy: true
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
 
   pipeline-complete:
     name: Pipeline Complete

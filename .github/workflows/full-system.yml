@@ -140,6 +140,12 @@ jobs:
           token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
+      - uses: JorisJonkers-dev/github-workflows/actions/setup-java-gradle@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
+        with:
+          java-version: '21'
+          packages-proxy-token: ${{ secrets.PACKAGES_PROXY_TOKEN }}
+          require-package-proxy: true
+
       # Correction #22: download candidate-lock.json from artifact (RUNNER_TEMP does not persist)
       - name: Download candidate lock
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
@@ -176,6 +182,12 @@ jobs:
           repository: JorisJonkers-dev/stack-integration-tests
           token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
+
+      - uses: JorisJonkers-dev/github-workflows/actions/setup-java-gradle@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
+        with:
+          java-version: '21'
+          packages-proxy-token: ${{ secrets.PACKAGES_PROXY_TOKEN }}
+          require-package-proxy: true
 
       # Correction #22: download candidate-lock.json from artifact
       - name: Download candidate lock
@@ -220,6 +232,11 @@ jobs:
           repository: JorisJonkers-dev/stack-integration-tests
           token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
+
+      - uses: JorisJonkers-dev/github-workflows/actions/setup-package-proxy@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
+        with:
+          token: ${{ secrets.PACKAGES_PROXY_TOKEN }}
+          require-package-proxy: true
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0

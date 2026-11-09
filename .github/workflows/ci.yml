@@ -18,18 +18,20 @@ permissions:
 jobs:
   jvm:
     name: JVM
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
     with:
       lint-gradle-args: >-
         :system-tests:detektMain :system-tests:detektTest :system-tests:ktlintCheck
         :acceptance-runner:detektMain :acceptance-runner:detektTest :acceptance-runner:ktlintCheck
       test-gradle-args: ":system-tests:check :acceptance-runner:check"
+      require-package-proxy: true
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
 
   image-tags:
     name: IMAGE_TAGS Contract
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -42,8 +44,10 @@ jobs:
         ghcr.io/jorisjonkers-dev/agents-ui:v0.16.0
         ghcr.io/jorisjonkers-dev/agent-runtime:v0.16.0
         ghcr.io/twin/gatus:v5.20.0'
+      require-package-proxy: true
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
 
   harness:
     name: Deploy Harness Tests
@@ -51,6 +55,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: JorisJonkers-dev/github-workflows/actions/setup-package-proxy@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
+        with:
+          token: ${{ secrets.PACKAGES_PROXY_TOKEN }}
+          require-package-proxy: true
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
