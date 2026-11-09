@@ -16,3 +16,5 @@ name: 'Repository Hygiene'
     'uses': 'JorisJonkers-dev/github-workflows/.github/workflows/repository-hygiene-guard.yml@2e0d88483fbb70fdb54034c85e9930dec066f906' # v0.45.2
     'with':
       'package-proxy-guard': 'enforce'
+    'secrets':
+      'PACKAGES_PROXY_TOKEN': '${{ secrets.PACKAGES_PROXY_TOKEN }}'
