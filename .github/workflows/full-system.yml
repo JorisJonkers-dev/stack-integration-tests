@@ -140,7 +140,7 @@ jobs:
           token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
-      - uses: JorisJonkers-dev/github-workflows/actions/setup-java-gradle@2e0d88483fbb70fdb54034c85e9930dec066f906 # v0.45.2
+      - uses: JorisJonkers-dev/github-workflows/actions/setup-java-gradle@2814b76fc3f5bd4f02a6e4a0fa789f1307757daa # v0.45.4
         with:
           java-version: '21'
           packages-proxy-token: ${{ secrets.PACKAGES_PROXY_TOKEN }}
@@ -183,7 +183,7 @@ jobs:
           token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
-      - uses: JorisJonkers-dev/github-workflows/actions/setup-java-gradle@2e0d88483fbb70fdb54034c85e9930dec066f906 # v0.45.2
+      - uses: JorisJonkers-dev/github-workflows/actions/setup-java-gradle@2814b76fc3f5bd4f02a6e4a0fa789f1307757daa # v0.45.4
         with:
           java-version: '21'
           packages-proxy-token: ${{ secrets.PACKAGES_PROXY_TOKEN }}
@@ -233,7 +233,7 @@ jobs:
           token: ${{ secrets.T2_HARNESS_TOKEN || github.token }}
           path: harness/
 
-      - uses: JorisJonkers-dev/github-workflows/actions/setup-package-proxy@2e0d88483fbb70fdb54034c85e9930dec066f906 # v0.45.2
+      - uses: JorisJonkers-dev/github-workflows/actions/setup-package-proxy@2814b76fc3f5bd4f02a6e4a0fa789f1307757daa # v0.45.4
         with:
           token: ${{ secrets.PACKAGES_PROXY_TOKEN }}
           require-package-proxy: true
