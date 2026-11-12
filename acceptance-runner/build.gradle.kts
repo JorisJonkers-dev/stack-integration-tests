@@ -10,7 +10,7 @@ plugins {
 // is not duplicated here: this task copies just that one file onto this
 // module's classpath, so any other fixture system-tests later adds to that
 // directory is never pulled into acceptance-runner's packaged jar/install image.
-val copyEvaluationSet by tasks.registering(Copy::class) {
+val copyEvaluationSet = tasks.register<Copy>("copyEvaluationSet") {
     from("../system-tests/src/test/resources") {
         include("evaluation-set.json")
     }
