@@ -18,7 +18,7 @@ permissions:
 jobs:
   jvm:
     name: JVM
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@8aaf024208bf4b29acb468aecd3cd7ee130d5ac1 # v0.49.1
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@48fcba8b143567e12716f4b77b9a3ab211719ffd # v0.50.1
     with:
       lint-gradle-args: >-
         :system-tests:detektMain :system-tests:detektTest :system-tests:ktlintCheck
@@ -31,7 +31,7 @@ jobs:
 
   image-tags:
     name: IMAGE_TAGS Contract
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@8aaf024208bf4b29acb468aecd3cd7ee130d5ac1 # v0.49.1
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@48fcba8b143567e12716f4b77b9a3ab211719ffd # v0.50.1
     with:
       lint-gradle-args: help
       test-gradle-args: >-
@@ -55,7 +55,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - uses: JorisJonkers-dev/github-workflows/actions/setup-package-proxy@8aaf024208bf4b29acb468aecd3cd7ee130d5ac1 # v0.49.1
+      - uses: JorisJonkers-dev/github-workflows/actions/setup-package-proxy@48fcba8b143567e12716f4b77b9a3ab211719ffd # v0.50.1
         with:
           token: ${{ secrets.PACKAGES_PROXY_TOKEN }}
           require-package-proxy: true
