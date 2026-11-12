@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.2](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.5.1...v0.5.2) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update minor and patch dependencies ([#31](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/31)) ([2f0f2ff](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/2f0f2ff174340bccbfeb8e983788bb516361e52b))
+* **hygiene:** never cancel a run of the required hygiene checks ([#46](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/46)) ([d967a1b](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/d967a1b8316f74c8d9abb81fab14cc1c82107dd7))
+
 ## [0.5.1](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.5.0...v0.5.1) (2026-11-10)
 
 
