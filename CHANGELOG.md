@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.5.2...v0.5.3) (2026-11-19)
+
+
+### Bug Fixes
+
+* **deps:** point lockfile tarballs at the public registry ([#50](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/50)) ([f397418](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/f3974180e2aaf65288b69ebbd031a426ba52bea7))
+
 ## [0.5.2](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.5.1...v0.5.2) (2026-11-12)
 
 
