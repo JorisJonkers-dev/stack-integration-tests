@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.5.3...v0.5.4) (2026-11-20)
+
+
+### Bug Fixes
+
+* **ci:** cancel superseded runs and skip label events ([#47](https://github.com/JorisJonkers-dev/stack-integration-tests/issues/47)) ([9105197](https://github.com/JorisJonkers-dev/stack-integration-tests/commit/910519711369d4edb2580489d91c52ded7a49b78))
+
 ## [0.5.3](https://github.com/JorisJonkers-dev/stack-integration-tests/compare/v0.5.2...v0.5.3) (2026-11-19)
 
 
