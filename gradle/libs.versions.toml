@@ -1,5 +1,5 @@
 [versions]
-jorisjonkers-conventions = "0.7.2"
+jorisjonkers-conventions = "0.7.4"
 kotlin-spring-commons = "0.11.1"
 
 [libraries]
